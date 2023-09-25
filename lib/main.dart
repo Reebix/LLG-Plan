@@ -167,7 +167,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 Text('General Timetable'),
                 Text('Exams'),
                 Text('Settings'),
-                Text('Teacher Information')
+                Text('Teacher Information'),
+                Text('About'),
               ]),
             ),
           ],
