@@ -1,5 +1,11 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:llgplan/student.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'student.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,58 +44,93 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 1;
   String _title = 'LLG Plan';
-  List<Widget> _testStudents = [];
+  Student? _currentStudent;
 
-  Icon addIcon = const Icon(Icons.add);
+  final Icon addIcon = const Icon(Icons.add);
+  final Icon personIcon = const Icon(Icons.person);
+  final Icon classIcon = const Icon(Icons.class_);
 
-  void _addStudent() {
-    var box = const SizedBox();
-    box = SizedBox(
-      height: 50,
-      child: ListTile(
-        leading: Icon(Icons.person),
-        title: Text(
-          'Timon David Richter',
-          textScaleFactor: 1.1,
-        ),
-        onLongPress: () => setState(() => _testStudents.remove(box)),
-        onTap: () => setState(() => _title = 'Timon David Richter'),
+  List<DropdownMenuItem<Student>> listItems = [];
+  SharedPreferences? storage;
+
+  //constructor
+  _MyHomePageState() {
+    () async => storage = await SharedPreferences.getInstance();
+
+    listItems = [];
+    listItems.add(DropdownMenuItem(
+      value: null,
+      onTap: () => addStudent('Temp placeholder'),
+      child: const Row(
+        children: [
+          Icon(
+            Icons.add,
+            size: 40,
+          ),
+          Text(
+            'Neuer Schüler',
+            textScaleFactor: 1.1,
+            style: TextStyle(color: Colors.green),
+          ),
+        ],
       ),
-    );
+    ));
+
+    var studentList = storage?.getStringList('students');
+    if (studentList == null) {
+      //TODO: fix saving
+      print('no students found');
+      () async => await storage?.setStringList('students', []);
+      studentList = [];
+    }
+
+    for (var student in studentList) {
+      print(student);
+      //addStudent(student, save: false);
+    }
+  }
+
+  void addStudent(name, {save = true}) {
+    var student = Student(name);
+
     setState(() {
-      _testStudents.add(
-        box,
-      );
+      listItems.add(student.dropdownMenuItem);
+
+      _currentStudent = student;
+      _title = student.name;
+
+      if (!save) return;
+
+      /*
+      List<String>? studentList = storage?.getStringList('students');
+      studentList?.add(name);
+      storage?.setStringList('students', studentList!);
+
+      for (var student in studentList!) {
+        print(student);
+      }
+      */
+
+          });
+
+  }
+
+  void selectStudent(Student student) {
+    student.select();
+    setState(() {
+      _title = student.name;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    /*
-    for (int i = 0; i < 10; i++) {
-      _testStudents.add(
-        SizedBox(
-          height: 50,
-          child: ListTile(
-            leading: Icon(Icons.person),
-            title: Text(
-              'Timon David Richter',
-              textScaleFactor: 1.1,
-            ),
-          ),
-        ),
-      );
-    }
-
-   */
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.background,
         title: Text(_title),
       ),
       drawer: Drawer(
-        width: 250,
+        width: 330,
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
@@ -101,57 +142,33 @@ class _MyHomePageState extends State<MyHomePage> {
                   color: Colors.green,
                   shape: BoxShape.rectangle,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Schüler',
-                      textAlign: TextAlign.left,
-                      textScaleFactor: 1.5,
-                    ),
-                    IconButton(
-                      icon: addIcon,
-                      onPressed: _addStudent,
-                    ),
-                  ],
+                child: DropdownButton(
+                  value: _currentStudent,
+                  iconSize: 30,
+                  hint: const Text('Wähle einen Schüler oder Klasse aus'),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.green,
+                  ),
+                  items: listItems,
+                  onChanged: (value) {
+                    if (value == null || value.name == 'add') return;
+                    setState(() {
+                      _currentStudent = value;
+                      _title = value.name;
+                    });
+                  },
                 ),
               ),
             ),
-            SingleChildScrollView(
-              child: ListBody(
-                children: _testStudents,
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'No: ',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            ButtonBar(
-              alignment: MainAxisAlignment.center,
-              children: <Widget>[
-                ElevatedButton(
-                  onPressed: () => setState(() => _counter = _counter - 1),
-                  child: const Text('Subtract'),
-                ),
-                ElevatedButton(
-                  onPressed: () => setState(() => _counter = 0),
-                  child: const Text('Reset'),
-                ),
-                ElevatedButton(
-                  onPressed: () => setState(() => _testStudents.clear()),
-                  child: const Text('Reset List'),
-                ),
-              ],
+            const SingleChildScrollView(
+              child: ListBody(children: [
+                Text('Current Timetable'),
+                Text('General Timetable'),
+                Text('Exams'),
+                Text('Settings'),
+                Text('Teacher Information')
+              ]),
             ),
           ],
         ),
