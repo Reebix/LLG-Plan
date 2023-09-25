@@ -2,7 +2,7 @@ name: App Release
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   version:
