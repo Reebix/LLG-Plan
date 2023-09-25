@@ -21,7 +21,7 @@ jobs:
       
       - name: Use the version
         run: |
-          echo ${{ steps.version.outputs.version }}
+          echo ${{ steps.version.outputs.version }} > version.txt
       - name: Use the previous version
         run: |
           echo ${{ steps.version.outputs.previous-version }}
