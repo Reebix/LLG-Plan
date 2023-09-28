@@ -1,35 +1,45 @@
-name: App Release
-
+name: Auto Versioning
 on:
   push:
-    branches: [ main ]
-
+    branches:
+      - main
+concurrency: production
 jobs:
   version:
     name: Create version number
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}   # checkout the correct branch name
-          fetch-depth: 0                # fetch the whole repo history
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
+    - name: Minor version for each merge
+      id: taggerDryRun
+      uses: anothrNick/github-tag-action@1.36.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        WITH_V: true
+        DRY_RUN: true
 
-      - name: Git Version
-        id: version
-        uses: codacy/git-version@2.7.1
-      
-      - name: Use the version
-        run: |
-          echo ${{ steps.version.outputs.version }} > version.txt
-      - name: Use the previous version
-        run: |
-          echo ${{ steps.version.outputs.previous-version }}
-      - name: Upload version.txt
-        uses: actions/upload-artifact@v2
-        with:
-          name: version
-          path: version.txt
+    - name: echo new tag
+      run: |
+        echo "The next tag version will be: ${{ steps.taggerDryRun.outputs.new_tag }}"
+    - name: echo tag
+      run: |
+        echo "The current tag is: ${{ steps.taggerDryRun.outputs.tag }}"
+    - name: echo part
+      run: |
+        echo "The version increment was: ${{ steps.taggerDryRun.outputs.part }}"
+    # DO MY BUILD HERE
+    # IN CASE OF FAILURE, THE STEP BELOW WILL NOT RUN.
+    
+
+    - name: Minor version for each merge
+      id: taggerFinal
+      uses: anothrNick/github-tag-action@1.36.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        WITH_V: true
+
   build:
     name: Build APK and Create release
     needs: [ version ]
@@ -48,7 +58,7 @@ jobs:
       with:
         path: version1.txt
     - name: Update version in YAML
-      run: sed -i 's/99.99.99+99/${{ steps.version.outputs.content }}+${{ github.run_number }}/g' pubspec.yaml
+      run: sed -i 's/99.99.99+99/${{ steps.taggerDryRun.outputs.new_tag }}+${{ github.run_number }}/g' pubspec.yaml
     - uses: actions/setup-java@v1
       with:
         java-version: '12.x'
@@ -66,7 +76,7 @@ jobs:
       with:
         artifacts: "build/app/outputs/apk/release/*.apk,build/app/outputs/bundle/release/app-release.aab"
         token: ${{ secrets.GH_TOKEN }}
-        tag: ${{ steps.version.outputs.content }}
+        tag: ${{ steps.taggerDryRun.outputs.new_tag }}
         commit: ${{ github.sha }}
         generateReleaseNotes: true
         prerelease: true
