@@ -74,4 +74,4 @@ jobs:
         delete_expired_data: 10 # Optional parameters
         delete_prerelease_only: true
       env:
-        GITHUB_TOKEN: ${{ secrets.GHTOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
