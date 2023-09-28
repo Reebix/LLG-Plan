@@ -29,9 +29,6 @@ jobs:
     - name: echo part
       run: |
         echo "The version increment was: ${{ steps.taggerDryRun.outputs.part }}"
-    # DO MY BUILD HERE
-    # IN CASE OF FAILURE, THE STEP BELOW WILL NOT RUN.
-    
 
     - name: Minor version for each merge
       id: taggerFinal
@@ -39,24 +36,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         WITH_V: true
-
-  build:
-    name: Build APK and Create release
-    needs: [ version ]
-    runs-on: ubuntu-latest
-    steps:
     - uses: actions/checkout@v1
-    - name: Get version.txt
-      uses: actions/download-artifact@v2
       with:
         name: version
-    - name: Create new file without newline char from version.txt
-      run: tr -d '\n' < version.txt > version1.txt
-    - name: Read version
-      id: version
-      uses: juliangruber/read-file-action@v1
-      with:
-        path: version1.txt
     - name: Update version in YAML
       run: sed -i 's/99.99.99+99/${{ steps.taggerDryRun.outputs.new_tag }}+${{ github.run_number }}/g' pubspec.yaml
     - uses: actions/setup-java@v1
@@ -81,3 +63,4 @@ jobs:
         generateReleaseNotes: true
         prerelease: true
 
+      
