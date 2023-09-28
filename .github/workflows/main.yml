@@ -64,13 +64,12 @@ jobs:
         generateReleaseNotes: true
         prerelease: true
   deleteold:
-   name: Delete Old Releases 
-   runs-on: ubuntu-latest
+    name: Delete Old Releases 
+    runs-on: ubuntu-latest
     steps:
     - uses: dev-drprasad/delete-older-releases@v0.3.1
       with:
-        repo: <owner>/<repoName> # defaults to current repo
-        keep_latest: 3
+        keep_latest: 4
         keep_min_download_counts: 1 # Optional parameters
         delete_expired_data: 10 # Optional parameters
         delete_prerelease_only: true
