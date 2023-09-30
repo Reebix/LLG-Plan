@@ -1,14 +1,10 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:llgplan/student.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'student.dart';
-
 void main() {
-  runApp(const MyApp());
+  runApp(const LLGApp());
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -19,30 +15,27 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class LLGApp extends StatelessWidget {
+  const LLGApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'LLG Plan',
       theme: ThemeData.dark(),
-      home: const MyHomePage(),
+      home: const LLGHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-
-  //Icons.class_ for class
+class LLGHomePage extends StatefulWidget {
+  const LLGHomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<LLGHomePage> createState() => LLGHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 1;
+class LLGHomePageState extends State<LLGHomePage> {
   String _title = 'LLG Plan';
   Student? _currentStudent;
 
@@ -51,47 +44,30 @@ class _MyHomePageState extends State<MyHomePage> {
   final Icon classIcon = const Icon(Icons.class_);
 
   List<DropdownMenuItem<Student>> listItems = [];
-  SharedPreferences? storage;
 
-  //constructor
-  _MyHomePageState() {
-    () async => storage = await SharedPreferences.getInstance();
-
-    listItems = [];
-    listItems.add(DropdownMenuItem(
-      value: null,
-      onTap: () => addStudent('Temp placeholder'),
-      child: const Row(
-        children: [
-          Icon(
-            Icons.add,
-            size: 40,
-          ),
-          Text(
-            'Neuer Schüler',
-            textScaleFactor: 1.1,
-            style: TextStyle(color: Colors.green),
-          ),
-        ],
-      ),
-    ));
-
-    var studentList = storage?.getStringList('students');
-    if (studentList == null) {
-      //TODO: fix saving
-      print('no students found');
-      () async => await storage?.setStringList('students', []);
-      studentList = [];
-    }
-
-    for (var student in studentList) {
-      print(student);
-      //addStudent(student, save: false);
-    }
+  @override
+  initState() {
+    super.initState();
+    loadStudents();
   }
 
-  void addStudent(name, {save = true}) {
-    var student = Student(name);
+  void loadStudents() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? studentList = prefs.getStringList('students');
+    setState(() {
+      if (studentList == null) {
+        studentList = [];
+        prefs.setStringList('students', studentList!);
+      }
+      for (var student in studentList!) {
+        addStudent(student, save: false);
+      }
+    });
+  }
+
+  void addStudent(name, {save = true}) async {
+    var student = Student(name, (student) => deleteStudent(student!));
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
     setState(() {
       listItems.add(student.dropdownMenuItem);
@@ -101,29 +77,97 @@ class _MyHomePageState extends State<MyHomePage> {
 
       if (!save) return;
 
-      /*
-      List<String>? studentList = storage?.getStringList('students');
+      List<String>? studentList = prefs.getStringList('students');
       studentList?.add(name);
-      storage?.setStringList('students', studentList!);
+      prefs.setStringList('students', studentList!);
+    });
+  }
 
-      for (var student in studentList!) {
-        print(student);
-      }
-      */
+  Widget _buildConfirmDeletePopup(BuildContext context, Student student) {
+    return AlertDialog(
+      title: const Text('Schüler löschen'),
+      content: const Text('Möchtest du den Schüler wirklich löschen?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(_context).pop(),
+          child: const Text('Abbrechen'),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(_context).pop();
+            Navigator.of(_context).pop();
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            List<String>? studentList = prefs.getStringList('students');
+            studentList?.remove(student.name);
+            prefs.setStringList('students', studentList!);
 
-          });
+            setState(() {
+              if (_currentStudent == student) {
+                _currentStudent = null;
+                _title = 'LLG Plan';
+              }
+              listItems.remove(student.dropdownMenuItem);
+            });
 
+            student.onDelete();
+          },
+          child: const Text('Löschen'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddStudentPopup(BuildContext context) {
+    final TextEditingController controller = TextEditingController();
+    return AlertDialog(
+      title: const Text('Neuer Schüler'),
+      content: TextField(
+        controller: controller,
+        decoration: const InputDecoration(hintText: 'Name'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(_context).pop(),
+          child: const Text('Abbrechen'),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(_context).pop();
+            Navigator.of(_context).pop();
+            addStudent(controller.text);
+          },
+          child: const Text('Hinzufügen'),
+        ),
+      ],
+    );
+  }
+
+  void _addStudentPopup() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) => _buildAddStudentPopup(context));
+  }
+
+  void deleteStudent(Student student) async {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) =>
+            _buildConfirmDeletePopup(context, student));
   }
 
   void selectStudent(Student student) {
-    student.select();
+    student.onSelect();
     setState(() {
+      _currentStudent = student;
       _title = student.name;
     });
   }
 
+  late BuildContext _context;
+
   @override
   Widget build(BuildContext context) {
+    _context = context;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.background,
@@ -147,16 +191,33 @@ class _MyHomePageState extends State<MyHomePage> {
                   iconSize: 30,
                   hint: const Text('Wähle einen Schüler oder Klasse aus'),
                   underline: Container(
-                    height: 2,
-                    color: Colors.green,
+                    height: 0,
                   ),
-                  items: listItems,
+                  items: [
+                    DropdownMenuItem(
+                      value: null,
+                      child: Row(
+                        children: [
+                          TextButton(
+                            onPressed: _addStudentPopup,
+                            child: const Text(
+                              'Neuer Schüler oder Klasse',
+                              textScaleFactor: 1.1,
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...listItems,
+                  ],
                   onChanged: (value) {
-                    if (value == null || value.name == 'add') return;
-                    setState(() {
-                      _currentStudent = value;
-                      _title = value.name;
-                    });
+                    if (value == null) {
+                      return;
+                    }
+                    selectStudent(value);
                   },
                 ),
               ),
@@ -166,8 +227,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 Text('Current Timetable'),
                 Text('General Timetable'),
                 Text('Exams'),
-                Text('Settings'),
                 Text('Teacher Information'),
+                Text('Settings'),
                 Text('About'),
               ]),
             ),

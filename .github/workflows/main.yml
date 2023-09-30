@@ -1,4 +1,4 @@
-name: create new release with auto versioning 
+name: create new release with auto versioning
 on:
   push:
     branches:
@@ -6,72 +6,75 @@ on:
 concurrency: production
 jobs:
   version:
-    name: Create version number
+    name: Release App and Update Version
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: '0'
-    - name: Minor version for each merge
-      id: taggerDryRun
-      uses: anothrNick/github-tag-action@1.36.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        WITH_V: true
-        DRY_RUN: true
-        DEFAULT_BUMP: patch
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+      - name: Minor version for each merge
+        id: taggerDryRun
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          WITH_V: true
+          DRY_RUN: true
+          DEFAULT_BUMP: patch
 
-    - name: echo new tag
-      run: |
-        echo "The next tag version will be: ${{ steps.taggerDryRun.outputs.new_tag }}"
-    - name: echo tag
-      run: |
-        echo "The current tag is: ${{ steps.taggerDryRun.outputs.tag }}"
-    - name: echo part
-      run: |
-        echo "The version increment was: ${{ steps.taggerDryRun.outputs.part }}"
+      - name: echo new tag
+        run: |
+          echo "The next tag version will be: ${{ steps.taggerDryRun.outputs.new_tag }}"
+      - name: echo tag
+        run: |
+          echo "The current tag is: ${{ steps.taggerDryRun.outputs.tag }}"
+      - name: echo part
+        run: |
+          echo "The version increment was: ${{ steps.taggerDryRun.outputs.part }}"
 
-    - name: Minor version for each merge
-      id: taggerFinal
-      uses: anothrNick/github-tag-action@1.36.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        WITH_V: true
-    - uses: actions/checkout@v1
-      with:
-        name: version
-    - name: Update version in YAML
-      run: sed -i 's/99.99.99+99/${{ steps.taggerDryRun.outputs.new_tag }}+${{ github.run_number }}/g' pubspec.yaml
-    - uses: actions/setup-java@v1
-      with:
-        java-version: '12.x'
-    - uses: subosito/flutter-action@v1
-      with:
-        flutter-version: '3.13.5'
-    - run: flutter upgrade
-    - run: flutter pub get
-    - run: flutter build apk --release
- #   - run: flutter build web
- #   - run: flutter build windows
-    - run: flutter build appbundle
-    - name: Create a Release in GitHub
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: "build/app/outputs/apk/release/*.apk,build/app/outputs/bundle/release/app-release.aab"
-        token: ${{ secrets.GH_TOKEN }}
-        tag: ${{ steps.taggerDryRun.outputs.new_tag }}
-        commit: ${{ github.sha }}
-        generateReleaseNotes: true
-        prerelease: true
+      - name: Minor version for each merge
+        id: taggerFinal
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          WITH_V: true
+      - uses: actions/checkout@v1
+        with:
+          name: version
+      - name: Update version in YAML
+        run: sed -i 's/99.99.99+99/${{ steps.taggerDryRun.outputs.new_tag }}+${{ github.run_number }}/g' pubspec.yaml
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+      - uses: subosito/flutter-action@v1
+        with:
+          flutter-version: '3.13.5'
+      - run: flutter upgrade
+      - run: flutter pub get
+      - run: flutter build apk --release
+      #   - run: flutter build web
+      #   - run: flutter build windows
+      - run: flutter build appbundle
+      - name: Create a Release in GitHub
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/app/outputs/apk/release/*.apk,build/app/outputs/bundle/release/app-release.aab"
+          token: ${{ secrets.GH_TOKEN }}
+          tag: ${{ steps.taggerDryRun.outputs.new_tag }}
+          commit: ${{ github.sha }}
+          generateReleaseNotes: true
+          prerelease: true
+
+
+
   deleteold:
-    name: Delete Old Releases 
+    name: Delete Old Releases
     runs-on: ubuntu-latest
     steps:
-    - uses: dev-drprasad/delete-older-releases@v0.3.1
-      with:
-        keep_latest: 4
-        keep_min_download_counts: 1 # Optional parameters
-        delete_expired_data: 10 # Optional parameters
-        delete_prerelease_only: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      - uses: dev-drprasad/delete-older-releases@v0.3.1
+        with:
+          keep_latest: 4
+          keep_min_download_counts: 1 # Optional parameters
+          delete_expired_data: 10 # Optional parameters
+          delete_prerelease_only: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

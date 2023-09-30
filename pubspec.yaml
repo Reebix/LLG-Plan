@@ -52,13 +52,14 @@ dev_dependencies:
   flutter_lints: ^2.0.0
 
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
   image_path: "assets/images/icon.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
   web:
     generate: true
     image_path: "assets/images/icon.png"
+    image_path_android: "assets/images/icon.png"
     background_color: "#hexcode"
     theme_color: "#hexcode"
   windows:
@@ -68,6 +69,7 @@ flutter_launcher_icons:
   macos:
     generate: true
     image_path: "assets/images/icon.png"
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

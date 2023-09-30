@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 class Student {
   final String name;
   late DropdownMenuItem<Student> dropdownMenuItem;
+  final ValueChanged<Student?>? delete;
   bool isClass = false;
 
-  Student(this.name) {
+  Student(this.name, this.delete) {
     add();
   }
 
@@ -17,17 +18,37 @@ class Student {
       value: this,
       child: Row(
         children: [
-          Icon(
-            isClass ? Icons.class_ : Icons.person,
-            size: 40,
+          SizedBox(
+            width: 220,
+            child: Row(
+              children: [
+                Icon(
+                  isClass ? Icons.class_ : Icons.person,
+                  size: 40,
+                ),
+                SizedBox(
+                  width: 180,
+                  child: Text(name),
+                ),
+              ],
+            ),
           ),
-          Text(name),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            color: Colors.red,
+            tooltip: 'Löschen',
+            onPressed: () => delete!(this),
+          ),
         ],
       ),
     );
   }
 
-  void select() {
-    print('selected');
+  void onSelect() {
+    print('selected $name');
+  }
+
+  void onDelete() {
+    print('deleted $name');
   }
 }
