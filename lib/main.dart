@@ -22,7 +22,8 @@ class LLGApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'LLG Plan',
-      theme: ThemeData.dark(),
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
       home: const LLGHomePage(),
     );
   }
@@ -44,6 +45,18 @@ class LLGHomePageState extends State<LLGHomePage> {
   final Icon classIcon = const Icon(Icons.class_);
 
   List<DropdownMenuItem<Student>> listItems = [];
+
+  var selectedCategory =
+      (icon: Icons.home, name: 'Heutiger Plan', widget: Container());
+
+  var allCategories = [
+    (icon: Icons.home, name: 'Heutiger Plan', widget: Container()),
+    (icon: Icons.calendar_today, name: 'Stundenplan', widget: Container()),
+    (icon: Icons.event, name: 'Termine', widget: Container()),
+    (icon: Icons.person, name: 'Lehrer Info', widget: Container()),
+    (icon: Icons.settings, name: 'Einstellungen', widget: Container()),
+    (icon: Icons.info, name: 'About', widget: Container()),
+  ];
 
   @override
   initState() {
@@ -171,7 +184,19 @@ class LLGHomePageState extends State<LLGHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.background,
-        title: Text(_title),
+        title: Row(
+          children: [
+            Text(_title),
+            // padding to right
+            const Spacer(),
+            Text(selectedCategory.name, textScaleFactor: 0.8),
+            const SizedBox(width: 10),
+            Icon(
+              selectedCategory.icon,
+              size: 20,
+            ),
+          ],
+        ),
       ),
       drawer: Drawer(
         width: 330,
@@ -182,8 +207,8 @@ class LLGHomePageState extends State<LLGHomePage> {
               height: 100,
               child: DrawerHeader(
                 margin: EdgeInsets.zero,
-                decoration: const BoxDecoration(
-                  color: Colors.green,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).highlightColor,
                   shape: BoxShape.rectangle,
                 ),
                 child: DropdownButton(
@@ -203,9 +228,6 @@ class LLGHomePageState extends State<LLGHomePage> {
                             child: const Text(
                               'Neuer Schüler oder Klasse',
                               textScaleFactor: 1.1,
-                              style: TextStyle(
-                                color: Colors.white,
-                              ),
                             ),
                           ),
                         ],
@@ -222,17 +244,38 @@ class LLGHomePageState extends State<LLGHomePage> {
                 ),
               ),
             ),
-            const SingleChildScrollView(
-              child: ListBody(children: [
-                Text('Current Timetable'),
-                Text('General Timetable'),
-                Text('Exams'),
-                Text('Teacher Information'),
-                Text('Settings'),
-                Text('About'),
-              ]),
+            SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  ...allCategories
+                      .map((item) => ListTile(
+                            selected: item == selectedCategory,
+                            leading: Icon(item.icon),
+                            title: Text(
+                              //get second value of struct
+                              item.name,
+                              textScaleFactor: 1.4,
+                            ),
+                            onTap: () {
+                              if (item.name == '') return;
+                              setState(() {
+                                selectedCategory = item;
+                              });
+
+                              Navigator.pop(context);
+                            },
+                          ))
+                      .toList()
+                ],
+              ),
             ),
           ],
+        ),
+      ),
+      //TODO: replace this with "selectedCategory.widget"  current is only for testing
+      body: Container(
+        child: Center(
+          child: Text('Selected Category: ${selectedCategory.name} ${_title}'),
         ),
       ),
     );
