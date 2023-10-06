@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:llgplan/student.dart';
-// ignore: depend_on_referenced_packages
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -60,10 +59,28 @@ class LLGHomePageState extends State<LLGHomePage> {
     (icon: Icons.info, name: 'About', widget: Container()),
   ];
 
+  String dsbUser = "153482";
+  String dsbPw = "";
+  String slpUser = "LLG";
+  String slpPw = "";
+
   @override
   initState() {
     super.initState();
     loadStudents();
+
+    setState(() {
+      _getDsbPw().then((value) => dsbPw = value);
+      _getSlpPw().then((value) => slpPw = value);
+    });
+
+    allCategories[4] = (
+      icon: Icons.settings,
+      name: 'Einstellungen',
+      widget: Container(child: _buildConfigPage())
+    );
+
+    selectedCategory = allCategories[0];
   }
 
   void loadStudents() async {
@@ -96,6 +113,64 @@ class LLGHomePageState extends State<LLGHomePage> {
       studentList?.add(name);
       prefs.setStringList('students', studentList!);
     });
+  }
+
+  //<editor-fold desc="Build Stuff">
+  Widget _buildConfigPage() {
+    final TextEditingController dsbPwController =
+        TextEditingController(text: dsbPw);
+    final TextEditingController slpPwController =
+        TextEditingController(text: slpPw);
+
+    return SingleChildScrollView(
+      child: ListBody(
+        children: [
+          SizedBox(
+            height: 50,
+          ),
+          Row(
+            children: [
+              SizedBox(
+                width: 50,
+              ),
+              Text(
+                'DSB Login Passwort:',
+                textScaleFactor: 1.3,
+              ),
+              SizedBox(width: 10),
+              SizedBox(
+                width: 100,
+                child: TextField(
+                  onSubmitted: _dsbPwSubmit,
+                  controller: dsbPwController,
+                  decoration: const InputDecoration(hintText: 'Passwort'),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              SizedBox(
+                width: 50,
+              ),
+              Text(
+                'SLP Login Passwort:',
+                textScaleFactor: 1.3,
+              ),
+              SizedBox(width: 10),
+              SizedBox(
+                width: 100,
+                child: TextField(
+                  onSubmitted: _slpPwSubmit,
+                  controller: slpPwController,
+                  decoration: const InputDecoration(hintText: 'Passwort'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildConfirmDeletePopup(BuildContext context, Student student) {
@@ -131,6 +206,8 @@ class LLGHomePageState extends State<LLGHomePage> {
       ],
     );
   }
+
+  //</editor-fold>
 
   Widget _buildAddStudentPopup(BuildContext context) {
     final TextEditingController controller = TextEditingController();
@@ -178,20 +255,46 @@ class LLGHomePageState extends State<LLGHomePage> {
     });
   }
 
+  void _dsbPwSubmit(String value) {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('dsbPw', value);
+      setState(() {
+        dsbPw = value;
+      });
+      if (kDebugMode) print('saved dsbPw');
+    });
+  }
+
+  void _slpPwSubmit(String value) {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('slpPw', value);
+      setState(() {
+        slpPw = value;
+      });
+      if (kDebugMode) print('saved slpPw');
+    });
+  }
+
+  Future<String> _getDsbPw() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? dsbPw = prefs.getString('dsbPw');
+    if (dsbPw != null) return dsbPw;
+    return '';
+  }
+
+  Future<String> _getSlpPw() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? slpPw = prefs.getString('slpPw');
+    if (slpPw != null) return slpPw;
+
+    return '';
+  }
+
   late BuildContext _context;
 
   @override
   Widget build(BuildContext context) {
     _context = context;
-    var debugBackgroundText = '';
-    if (kDebugMode) {
-      for (var i = 0; i < 100; i++) {
-        for (var j = 0; j < 5; j++) {
-          debugBackgroundText += 'Debug BG Text \t';
-        }
-        debugBackgroundText += '\n';
-      }
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -210,6 +313,7 @@ class LLGHomePageState extends State<LLGHomePage> {
           ],
         ),
       ),
+      //<editor-fold defaultstate="collapsed" desc="drawer">
       drawer: Drawer(
         width: 330,
         child: ListView(
@@ -284,28 +388,9 @@ class LLGHomePageState extends State<LLGHomePage> {
           ],
         ),
       ),
-      //TODO: replace this with "selectedCategory.widget"  current is only for testing
-      body: kDebugMode
-          ? Stack(
-              children: [
-                Text(
-                  debugBackgroundText,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                  ),
-                ),
-                // Actual content
-                Center(
-                  child: Text(
-                    'Selected Category: ${selectedCategory.name}',
-                    textScaleFactor: 2,
-                  ),
-                ),
+      //</editor-fold>
 
-                // End of actual content
-              ],
-            )
-          : selectedCategory.widget,
+      body: kDebugMode ? _buildConfigPage() : selectedCategory.widget,
     );
   }
 }
