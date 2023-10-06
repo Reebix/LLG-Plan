@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class Student {
@@ -45,10 +46,14 @@ class Student {
   }
 
   void onSelect() {
-    print('selected $name');
+    if (kDebugMode) {
+      print('selected $name');
+    }
   }
 
   void onDelete() {
-    print('deleted $name');
+    if (kDebugMode) {
+      print('deleted $name');
+    }
   }
 }

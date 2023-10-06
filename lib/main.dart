@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:llgplan/student.dart';
@@ -181,6 +182,16 @@ class LLGHomePageState extends State<LLGHomePage> {
   @override
   Widget build(BuildContext context) {
     _context = context;
+    var debugBackgroundText = '';
+    if (kDebugMode) {
+      for (var i = 0; i < 100; i++) {
+        for (var j = 0; j < 5; j++) {
+          debugBackgroundText += 'Debug BG Text \t';
+        }
+        debugBackgroundText += '\n';
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.background,
@@ -273,11 +284,29 @@ class LLGHomePageState extends State<LLGHomePage> {
         ),
       ),
       //TODO: replace this with "selectedCategory.widget"  current is only for testing
-      body: Container(
-        child: Center(
-          child: Text('Selected Category: ${selectedCategory.name} ${_title}'),
-        ),
-      ),
+      body: kDebugMode
+          ? Container(
+              child: Stack(
+                children: [
+                  Text(
+                    debugBackgroundText,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                  // Actual content
+                  Center(
+                    child: Text(
+                      'Selected Category: ${selectedCategory.name}',
+                      textScaleFactor: 2,
+                    ),
+                  ),
+
+                  // End of actual content
+                ],
+              ),
+            )
+          : selectedCategory.widget,
     );
   }
 }
