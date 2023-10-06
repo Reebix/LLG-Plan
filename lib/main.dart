@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:llgplan/student.dart';
+// ignore: depend_on_referenced_packages
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -285,26 +286,24 @@ class LLGHomePageState extends State<LLGHomePage> {
       ),
       //TODO: replace this with "selectedCategory.widget"  current is only for testing
       body: kDebugMode
-          ? Container(
-              child: Stack(
-                children: [
-                  Text(
-                    debugBackgroundText,
-                    style: const TextStyle(
-                      color: Colors.grey,
-                    ),
+          ? Stack(
+              children: [
+                Text(
+                  debugBackgroundText,
+                  style: const TextStyle(
+                    color: Colors.grey,
                   ),
-                  // Actual content
-                  Center(
-                    child: Text(
-                      'Selected Category: ${selectedCategory.name}',
-                      textScaleFactor: 2,
-                    ),
+                ),
+                // Actual content
+                Center(
+                  child: Text(
+                    'Selected Category: ${selectedCategory.name}',
+                    textScaleFactor: 2,
                   ),
+                ),
 
-                  // End of actual content
-                ],
-              ),
+                // End of actual content
+              ],
             )
           : selectedCategory.widget,
     );
