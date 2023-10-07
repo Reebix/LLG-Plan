@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:llgplan/networking/kollegium.dart';
 import 'package:llgplan/student.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -38,6 +39,8 @@ class LLGHomePage extends StatefulWidget {
 }
 
 class LLGHomePageState extends State<LLGHomePage> {
+  static LLGHomePageState? instance;
+
   String _title = 'LLG Plan';
   Student? _currentStudent;
 
@@ -67,20 +70,29 @@ class LLGHomePageState extends State<LLGHomePage> {
   @override
   initState() {
     super.initState();
+    instance = this;
+    KollegiumFetcher().fetch();
+
     loadStudents();
 
     setState(() {
       _getDsbPw().then((value) => dsbPw = value);
       _getSlpPw().then((value) => slpPw = value);
+
+      allCategories[3] = (
+        icon: Icons.person,
+        name: 'Lehrer Info',
+        widget: Container(child: _buildTeacherPage())
+      );
+
+      allCategories[4] = (
+        icon: Icons.settings,
+        name: 'Einstellungen',
+        widget: Container(child: _buildConfigPage())
+      );
+
+      selectedCategory = allCategories[0];
     });
-
-    allCategories[4] = (
-      icon: Icons.settings,
-      name: 'Einstellungen',
-      widget: Container(child: _buildConfigPage())
-    );
-
-    selectedCategory = allCategories[0];
   }
 
   void loadStudents() async {
@@ -116,6 +128,16 @@ class LLGHomePageState extends State<LLGHomePage> {
   }
 
   //<editor-fold desc="Build Stuff">
+  Widget _buildTeacherPage() {
+    return SingleChildScrollView(
+      child: ListBody(
+        children: [
+          ...KollegiumFetcher.teachers.map((teacher) => teacher.widget),
+        ],
+      ),
+    );
+  }
+
   Widget _buildConfigPage() {
     final TextEditingController dsbPwController =
         TextEditingController(text: dsbPw);
@@ -390,7 +412,7 @@ class LLGHomePageState extends State<LLGHomePage> {
       ),
       //</editor-fold>
 
-      body: kDebugMode ? _buildConfigPage() : selectedCategory.widget,
+      body: kDebugMode ? _buildTeacherPage() : selectedCategory.widget,
     );
   }
 }

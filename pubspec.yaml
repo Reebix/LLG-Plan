@@ -37,12 +37,15 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
 
   rename: ^2.1.1
+  http: ^1.1.0
+  html: ^0.15.4
   flutter_launcher_icons:
 
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/icon.png"
+  http: ^0.12.2
 
   #min_sdk_android: 21 # android min sdk min:16, default 21
   #web:
@@ -63,7 +66,6 @@ flutter_launcher_icons:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
