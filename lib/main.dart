@@ -63,9 +63,9 @@ class LLGHomePageState extends State<LLGHomePage> {
   ];
 
   String dsbUser = "153482";
-  String dsbPw = "";
+  String dsbPw = "llg-schueler";
   String slpUser = "LLG";
-  String slpPw = "";
+  String slpPw = "llg";
 
   @override
   initState() {
@@ -281,7 +281,7 @@ class LLGHomePageState extends State<LLGHomePage> {
     SharedPreferences.getInstance().then((prefs) {
       prefs.setString('dsbPw', value);
       setState(() {
-        dsbPw = value;
+        if (value != '') dsbPw = value;
       });
       if (kDebugMode) print('saved dsbPw');
     });
@@ -291,7 +291,7 @@ class LLGHomePageState extends State<LLGHomePage> {
     SharedPreferences.getInstance().then((prefs) {
       prefs.setString('slpPw', value);
       setState(() {
-        slpPw = value;
+        if (value != '') slpPw = value;
       });
       if (kDebugMode) print('saved slpPw');
     });
