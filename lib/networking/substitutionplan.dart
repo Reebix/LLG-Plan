@@ -1,6 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 main() {
@@ -27,27 +28,54 @@ class SubstitutionPlanFetcher {
     params["Data"] = currentTime;
     params["LastUpdate"] = currentTime;
 
-    var paramsByteString = jsonEncode(params);
-    var paramsCompressed = base64.encode(utf8.encode(paramsByteString));
+    final paramsJson = jsonEncode(params);
+    final paramsGzip = gzipEncode(utf8.encode(paramsJson));
+    final paramsBase64 = base64.encode(paramsGzip);
 
-    String jsonData = jsonEncode({
-      "req": {"Data": paramsCompressed, "DataType": 1}
+    final finalData = json.encode({
+      'req': {
+        'Data': paramsBase64,
+        'DataType': 1,
+      },
     });
 
-    var response = http
-        .post(Uri.parse("https://app.dsbcontrol.de/JsonHandler.ashx/GetData"),
-            headers: {
-              "Content-Type": "application/json;charset=utf-8",
-              "Accept-Encoding": "gzip, deflate",
-              "User-Agent":
-                  "Dalvik/2.1.0 (Linux; U; Android 8.1.0; Nexus 4 Build/OPM7.181205.001)",
-            },
-            body: jsonData,
-            encoding: Encoding.getByName("gzip"))
-        .then((value) => {
-              print(value.body),
-              print(value.statusCode),
-            });
+    final response = await apiRequest(
+        'https://app.dsbcontrol.de/JsonHandler.ashx/GetData', finalData);
+
+    final decodedResponse = json.decode(response);
+    final decodedData = decodedResponse['d'];
+    final decodedDataGzip = base64.decode(decodedData);
+    final decodedDataJson = utf8.decode(gunzipDecode(decodedDataGzip));
+    final decodedDataMap = json.decode(decodedDataJson);
+
+    print(decodedDataMap);
+  }
+
+  static Uint8List gunzipDecode(List<int> data) {
+    final byteStream = BytesBuilder();
+    final gzipDecoder = GZipCodec();
+    byteStream.add(gzipDecoder.decode(data));
+    return byteStream.toBytes();
+  }
+
+  static Uint8List gzipEncode(List<int> data) {
+    final byteStream = BytesBuilder();
+    final gzipEncoder = GZipCodec();
+    byteStream.add(gzipEncoder.encode(data));
+    return byteStream.toBytes();
+  }
+
+  static Future<String> apiRequest(String url, String data) async {
+    HttpClient httpClient = new HttpClient();
+    HttpClientRequest request = await httpClient.postUrl(Uri.parse(url));
+    request.headers.set('content-type', 'application/json');
+    request.headers.set('accept-encoding', 'gzip, deflate');
+    request.add(utf8.encode(data));
+    HttpClientResponse response = await request.close();
+
+    String reply = await response.transform(utf8.decoder).join();
+    httpClient.close();
+    return reply;
   }
 }
 
