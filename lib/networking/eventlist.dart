@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:html/parser.dart';
+
 main() {
   EventList().fetch();
 }
@@ -9,9 +11,7 @@ class EventList {
   getCookies(String url) async {
     HttpClient httpClient = new HttpClient();
     HttpClientRequest request = await httpClient.getUrl(Uri.parse(url));
-
     HttpClientResponse response = await request.close();
-
     httpClient.close();
     return response.cookies;
   }
@@ -36,7 +36,50 @@ class EventList {
         'https://selbstlernportal.de/html/termin/termin_klausur.php?ug=lev-llg&anzkw=25&',
         cookies);
 
-    print(response);
+    //parse response
+    final document = parse(response);
+
+    document.querySelectorAll('div.klausur').forEach((element) {
+      // get date of current item
+      final date = DateTime.parse(element.attributes['id']!.split('_').last);
+
+      var nodeList = element.nodes;
+      nodeList.removeWhere((element) => element.toString() == '<html hr>');
+
+      for (int i = 0; i < nodeList.length; i++) {
+        final text = nodeList[i].text;
+        if (text != '&nbsp;') {
+          events.add(Event(text!, GradeLevel.values[i], date));
+        }
+      }
+    });
+
+    print(events);
+  }
+
+  List<Event> events = [];
+}
+
+class Event {
+  final String content;
+  final GradeLevel grade;
+  final DateTime date;
+
+  Event(this.content, this.grade, this.date);
+
+  @override
+  String toString() {
+    return 'Event{content: $content, grade: $grade, date: $date}';
+  }
+
+  Map toJson() => {
+        'content': content,
+        'grade': grade,
+        'date': date,
+      };
+
+  Event fromJson(Map json) {
+    return Event(json['content'], json['grade'], json['date']);
   }
 }
 
