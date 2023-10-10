@@ -2,17 +2,46 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:html/parser.dart';
+import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 main() {
-  SubstitutionPlanFetcher.fetch();
+  SubstitutionPlanFetcher().fetch();
 }
 
 class SubstitutionPlanFetcher {
-  static String dsbUser = "153482";
-  static String dsbPw = "llg-schueler";
+  String dsbUser = "153482";
+  String dsbPw = "llg-schueler";
 
-  static void fetch() async {
+  Uint8List gunzipDecode(List<int> data) {
+    final byteStream = BytesBuilder();
+    final gzipDecoder = GZipCodec();
+    byteStream.add(gzipDecoder.decode(data));
+    return byteStream.toBytes();
+  }
+
+  Uint8List gzipEncode(List<int> data) {
+    final byteStream = BytesBuilder();
+    final gzipEncoder = GZipCodec();
+    byteStream.add(gzipEncoder.encode(data));
+    return byteStream.toBytes();
+  }
+
+  Future<String> apiRequest(String url, String data) async {
+    HttpClient httpClient = new HttpClient();
+    HttpClientRequest request = await httpClient.postUrl(Uri.parse(url));
+    request.headers.set('content-type', 'application/json');
+    request.headers.set('accept-encoding', 'gzip, deflate');
+    request.add(utf8.encode(data));
+    HttpClientResponse response = await request.close();
+
+    String reply = await response.transform(utf8.decoder).join();
+    httpClient.close();
+    return reply;
+  }
+
+  void fetch() async {
     var params = Map<String, String>();
 
     var currentTime = DateTime.now().toUtc().toIso8601String();
@@ -51,52 +80,115 @@ class SubstitutionPlanFetcher {
     final substitutionPlanUrl = decodedDataMap['ResultMenuItems'][0]['Childs']
         [1]['Root']['Childs'][0]['Childs'][0]['Detail'];
 
-    print(substitutionPlanUrl);
+    final substitutionPlanResponse =
+        await http.get(Uri.parse(substitutionPlanUrl));
+    final substitutionPlanDocument = substitutionPlanResponse.body;
+
+    final parsed = parse(substitutionPlanDocument);
+
+    parsed.querySelectorAll('div.mon_title').forEach((element) {
+      days.add(SubstitutionDay.createFromFormatted(element.text));
+    });
+
+    var dayList = parsed.querySelectorAll('table.mon_list');
+
+    for (var i = 0; i < days.length; i++) {
+      var element = dayList[i];
+
+      element.querySelectorAll('tr').forEach((element) {
+        if (element.firstChild?.text == 'Klasse' ||
+            element.children.length == 1 ||
+            element.firstChild?.text == ' ') {
+          return;
+        }
+        final children = element.children;
+
+        var shouldSkip = children[0].text.contains('Klausur') ||
+            children[0].text.contains('Joker');
+        final class_ = children[0].text;
+        final lessons = children[1].text.split(' - ').map((e) {
+          final parsed = int.tryParse(e);
+          shouldSkip = shouldSkip ? shouldSkip : parsed == null;
+          return parsed == null ? 0 : parsed;
+        }).toList();
+        if (shouldSkip) {
+          return;
+        }
+        final newTeacher = children[2].text;
+        final newSubject = children[3].text;
+        final oldSubject = children[4].text;
+        final comment = children[5].text;
+        final type = children[6].text;
+        final room = children[7].text;
+
+        days[i].substitutions.add(Substitution(class_, lessons, newTeacher,
+            newSubject, oldSubject, comment, type, room));
+      });
+    }
   }
 
-  static Uint8List gunzipDecode(List<int> data) {
-    final byteStream = BytesBuilder();
-    final gzipDecoder = GZipCodec();
-    byteStream.add(gzipDecoder.decode(data));
-    return byteStream.toBytes();
-  }
-
-  static Uint8List gzipEncode(List<int> data) {
-    final byteStream = BytesBuilder();
-    final gzipEncoder = GZipCodec();
-    byteStream.add(gzipEncoder.encode(data));
-    return byteStream.toBytes();
-  }
-
-  static Future<String> apiRequest(String url, String data) async {
-    HttpClient httpClient = new HttpClient();
-    HttpClientRequest request = await httpClient.postUrl(Uri.parse(url));
-    request.headers.set('content-type', 'application/json');
-    request.headers.set('accept-encoding', 'gzip, deflate');
-    request.add(utf8.encode(data));
-    HttpClientResponse response = await request.close();
-
-    String reply = await response.transform(utf8.decoder).join();
-    httpClient.close();
-    return reply;
-  }
+  List<SubstitutionDay> days = [];
 }
 
-class SubstitutionPlan {
+class SubstitutionDay {
+  //fromat: 29.9.2023 Freitag, Woche B
+
+  final DateTime date;
+  final List<Substitution> substitutions;
+
+  SubstitutionDay(this.date, this.substitutions);
+
+  static createFromFormatted(String formatted) {
+    final splitted = formatted.split(' ')[0].split('.');
+    final date = DateTime.parse(
+        '${splitted[2]}-${splitted[1].padLeft(2, '0')}-${splitted[0].padLeft(2, '0')}');
+    final substitutions = List<Substitution>.empty(growable: true);
+    return SubstitutionDay(date, substitutions);
+  }
+
+  static createFromJson(Map json) {
+    final date = json['date'];
+    final substitutions = json['substitutions'];
+    return SubstitutionDay(date, substitutions);
+  }
+
+  @override
+  String toString() {
+    return 'SubstitutionDay{date: $date, substitutions: $substitutions}';
+  }
+
+  Map toJson() => {
+        'date': date,
+        'substitutions': substitutions,
+      };
+}
+
+class Substitution {
   final String class_;
-  final int lesson;
+  final List<int> lessons;
   final String newTeacher;
   final String newSubject;
   final String oldSubject;
-  String comment;
+  final String comment;
   final String type;
   final String room;
 
-  SubstitutionPlan(this.class_, this.lesson, this.newTeacher, this.newSubject,
+  Substitution(this.class_, this.lessons, this.newTeacher, this.newSubject,
       this.oldSubject, this.comment, this.type, this.room);
 
   @override
   String toString() {
-    return 'SubstitutionPlan{class_: $class_, lesson: $lesson, newTeacher: $newTeacher, newSubject: $newSubject, oldSubject: $oldSubject, comment: $comment, type: $type, room: $room}';
+    return 'SubstitutionPlan{class_: $class_, lesson: $lessons, newTeacher: $newTeacher, newSubject: $newSubject, oldSubject: $oldSubject, comment: $comment, type: $type, room: $room}';
   }
+
+  Map toJson() => {
+        'class_': class_,
+        'lessons': lessons,
+        'newTeacher': newTeacher,
+        'newSubject': newSubject,
+        'oldSubject': oldSubject,
+        'comment': comment,
+        'type': type,
+        'room': room,
+      };
 }
