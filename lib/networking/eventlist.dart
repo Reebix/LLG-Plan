@@ -48,16 +48,29 @@ class EventList {
 
       for (int i = 0; i < nodeList.length; i++) {
         final text = nodeList[i].text;
-        if (text != '&nbsp;') {
+        if (text != ' ') {
           events.add(Event(text!, GradeLevel.values[i], date));
         }
       }
     });
 
-    print(events);
+    lastUpdate = DateTime.now();
   }
 
+  DateTime lastUpdate = DateTime.now();
   List<Event> events = [];
+
+  Map toJson() => {
+        'lastUpdate': lastUpdate,
+        'events': events,
+      };
+
+  static EventList fromJson(Map json) {
+    var eventList = EventList();
+    eventList.lastUpdate = json['lastUpdate'];
+    eventList.events = json['events'];
+    return eventList;
+  }
 }
 
 class Event {

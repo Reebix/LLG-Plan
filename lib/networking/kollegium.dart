@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:llgplan/main.dart';
 
 class KollegiumFetcher {
-  static List<Teacher> teachers = [];
+  List<Teacher> teachers = [];
 
   void fetch() async {
     List<Teacher> teachers = [];
@@ -41,8 +41,18 @@ class KollegiumFetcher {
     }
 
     LLGHomePageState.instance!.setState(() {
-      KollegiumFetcher.teachers = teachers;
+      teachers = teachers;
     });
+  }
+
+  Map toJson() => {
+        'teachers': teachers,
+      };
+
+  static KollegiumFetcher fromJson(Map json) {
+    KollegiumFetcher fetcher = KollegiumFetcher();
+    fetcher.teachers = json['teachers'];
+    return fetcher;
   }
 }
 
@@ -109,37 +119,17 @@ class Teacher {
         onTap: () => getEmail(),
         subtitle: emailLinkText,
       );
+
+  Map toJson() => {
+        'vorname': vorname,
+        'name': name,
+        'kuerzel': kuerzel,
+        'websiteId': websiteId,
+      };
+
+  static Teacher fromJson(Map json) {
+    Teacher teacher = Teacher(
+        json['vorname'], json['name'], json['kuerzel'], json['websiteId']);
+    return teacher;
+  }
 }
-
-/*
-</tr>
-            <tr class="row_172 even">
-                    <td class="body col_0 col_first">Jan Marco</td>
-                    <td class="body col_1">Walter</td>
-                    <td class="body col_2">WALT</td>
-                                            <td class="body col_3 col_last"><a href="informationen-4.html?show=377"><img src="assets/contao/images/info.svg" width="16" height="16" alt=""></a></td>
-                            </tr>
- */
-
-/*
-<table class="single_record">
-  <tbody>
-          <tr class="row_0 row_first even">
-        <td class="label">Vorname</td>
-        <td class="value">Simone</td>
-      </tr>
-          <tr class="row_1 odd">
-        <td class="label">Nachname</td>
-        <td class="value">Zimmermann</td>
-      </tr>
-          <tr class="row_2 even">
-        <td class="label">E-Mail-Adresse</td>
-        <td class="value"><a href="mailto:zimmermann@landrat-lucas.org">zimmermann@landrat-lucas.org</a></td>
-      </tr>
-          <tr class="row_3 row_last odd">
-        <td class="label">Kürzel</td>
-        <td class="value">ZIM</td>
-      </tr>
-      </tbody>
-  </table>
- */

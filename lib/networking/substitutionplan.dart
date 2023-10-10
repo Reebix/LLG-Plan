@@ -125,9 +125,23 @@ class SubstitutionPlanFetcher {
             newSubject, oldSubject, comment, type, room));
       });
     }
+    lastUpdate = DateTime.now();
   }
 
+  var lastUpdate = DateTime.now();
   List<SubstitutionDay> days = [];
+
+  Map toJson() => {
+        'lastUpdate': lastUpdate,
+        'days': days,
+      };
+
+  static SubstitutionPlanFetcher fromJson(Map json) {
+    var fetcher = SubstitutionPlanFetcher();
+    fetcher.lastUpdate = json['lastUpdate'];
+    fetcher.days = json['days'];
+    return fetcher;
+  }
 }
 
 class SubstitutionDay {
@@ -161,11 +175,18 @@ class SubstitutionDay {
         'date': date,
         'substitutions': substitutions,
       };
+
+  static SubstitutionDay fromJson(Map json) {
+    return SubstitutionDay(
+      json['date'],
+      json['substitutions'],
+    );
+  }
 }
 
 class Substitution {
   final String class_;
-  final List<int> lessons;
+  List<int> lessons;
   final String newTeacher;
   final String newSubject;
   final String oldSubject;
@@ -174,7 +195,14 @@ class Substitution {
   final String room;
 
   Substitution(this.class_, this.lessons, this.newTeacher, this.newSubject,
-      this.oldSubject, this.comment, this.type, this.room);
+      this.oldSubject, this.comment, this.type, this.room) {
+    if (lessons.length != 1)
+      for (var i = lessons[0] + 1; i < lessons[1]; i++) {
+        lessons.add(i);
+      }
+
+    this.lessons = lessons;
+  }
 
   @override
   String toString() {
@@ -191,4 +219,17 @@ class Substitution {
         'type': type,
         'room': room,
       };
+
+  static Substitution fromJson(Map json) {
+    return Substitution(
+      json['class_'],
+      json['lessons'],
+      json['newTeacher'],
+      json['newSubject'],
+      json['oldSubject'],
+      json['comment'],
+      json['type'],
+      json['room'],
+    );
+  }
 }
