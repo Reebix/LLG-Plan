@@ -48,7 +48,10 @@ class SubstitutionPlanFetcher {
     final decodedDataJson = utf8.decode(gunzipDecode(decodedDataGzip));
     final decodedDataMap = json.decode(decodedDataJson);
 
-    print(decodedDataMap);
+    final substitutionPlanUrl = decodedDataMap['ResultMenuItems'][0]['Childs']
+        [1]['Root']['Childs'][0]['Childs'][0]['Detail'];
+
+    print(substitutionPlanUrl);
   }
 
   static Uint8List gunzipDecode(List<int> data) {
