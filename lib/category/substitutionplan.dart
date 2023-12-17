@@ -2,17 +2,21 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
+import 'package:llgplan/category/category.dart';
 import 'package:uuid/uuid.dart';
 
 main() {
-  SubstitutionPlanFetcher().fetch();
+  SubstitutionPlan().fetch();
 }
 
-class SubstitutionPlanFetcher {
+class SubstitutionPlan extends PlanCategory {
   String dsbUser = "153482";
   String dsbPw = "llg-schueler";
+
+  SubstitutionPlan() : super('Vertretungsplan', Icons.school);
 
   Uint8List gunzipDecode(List<int> data) {
     final byteStream = BytesBuilder();
@@ -41,7 +45,7 @@ class SubstitutionPlanFetcher {
     return reply;
   }
 
-  void fetch() async {
+  Future<List<SubstitutionDay>> fetch() async {
     var params = Map<String, String>();
 
     var currentTime = DateTime.now().toUtc().toIso8601String();
@@ -82,8 +86,8 @@ class SubstitutionPlanFetcher {
 
     final substitutionPlanResponse =
         await http.get(Uri.parse(substitutionPlanUrl));
-    final substitutionPlanDocument = substitutionPlanResponse.body;
 
+    final substitutionPlanDocument = substitutionPlanResponse.body;
     final parsed = parse(substitutionPlanDocument);
 
     parsed.querySelectorAll('div.mon_title').forEach((element) {
@@ -95,7 +99,9 @@ class SubstitutionPlanFetcher {
     for (var i = 0; i < days.length; i++) {
       var element = dayList[i];
 
+      /*
       element.querySelectorAll('tr').forEach((element) {
+        // print(element.innerHtml);
         if (element.firstChild?.text == 'Klasse' ||
             element.children.length == 1 ||
             element.firstChild?.text == ' ') {
@@ -124,8 +130,11 @@ class SubstitutionPlanFetcher {
         days[i].substitutions.add(Substitution(class_, lessons, newTeacher,
             newSubject, oldSubject, comment, type, room));
       });
+      
+       */
     }
     lastUpdate = DateTime.now();
+    return days;
   }
 
   var lastUpdate = DateTime.now();
@@ -136,11 +145,36 @@ class SubstitutionPlanFetcher {
         'days': days,
       };
 
-  static SubstitutionPlanFetcher fromJson(Map json) {
-    var fetcher = SubstitutionPlanFetcher();
+  static SubstitutionPlan fromJson(Map json) {
+    var fetcher = SubstitutionPlan();
     fetcher.lastUpdate = json['lastUpdate'];
     fetcher.days = json['days'];
     return fetcher;
+  }
+
+  @override
+  Future<Widget> build() async {
+    await fetch();
+
+    print(days);
+
+    return ListView.builder(
+      itemCount: days.length,
+      itemBuilder: (context, index) {
+        return ExpansionTile(
+          title: Text(
+            days[index].date.toString().split(' ')[0],
+          ),
+          children: days[index].substitutions.map((e) {
+            return ListTile(
+              title: Text(e.class_),
+              subtitle: Text(e.lessons.join(', ')),
+              trailing: Text(e.newSubject),
+            );
+          }).toList(),
+        );
+      },
+    );
   }
 }
 

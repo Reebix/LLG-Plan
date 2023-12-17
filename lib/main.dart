@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:llgplan/networking/eventlist.dart';
-import 'package:llgplan/networking/kollegium.dart';
+import 'package:llgplan/category/category.dart';
+import 'package:llgplan/category/eventlist.dart';
+import 'package:llgplan/category/kollegium.dart';
+import 'package:llgplan/category/substitutionplan.dart';
 import 'package:llgplan/student.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,15 +53,22 @@ class LLGHomePageState extends State<LLGHomePage> {
 
   List<DropdownMenuItem<Student>> listItems = [];
 
-  var selectedCategory =
-      (icon: Icons.home, name: 'Heutiger Plan', widget: Container());
+  late PlanCategory selectedCategory;
 
+  /*
   var allCategories = [
     (icon: Icons.home, name: 'Heutiger Plan', widget: Container()),
     (icon: Icons.calendar_today, name: 'Stundenplan', widget: Container()),
     (icon: Icons.event, name: 'Termine', widget: Container()),
     (icon: Icons.settings, name: 'Einstellungen', widget: Container()),
     (icon: Icons.info, name: 'About', widget: Container()),
+  ];
+
+   */
+
+  List<PlanCategory> categories = [
+    SubstitutionPlan(),
+    EventList(),
   ];
 
   String dsbUser = "153482";
@@ -73,19 +82,13 @@ class LLGHomePageState extends State<LLGHomePage> {
     instance = this;
     KollegiumFetcher().fetch();
 
+    selectedCategory = categories[0];
+
     loadStudents();
 
     setState(() {
       _getDsbPw().then((value) => dsbPw = value);
       _getSlpPw().then((value) => slpPw = value);
-
-      allCategories[3] = (
-        icon: Icons.settings,
-        name: 'Einstellungen',
-        widget: Container(child: _buildConfigPage())
-      );
-
-      selectedCategory = allCategories[0];
     });
   }
 
@@ -176,12 +179,6 @@ class LLGHomePageState extends State<LLGHomePage> {
         ],
       ),
     );
-  }
-
-  Future<Widget> _buildEventPage() async {
-    EventList eventList = EventList();
-
-    return eventList.build();
   }
 
   Widget _buildConfirmDeletePopup(BuildContext context, Student student) {
@@ -374,7 +371,7 @@ class LLGHomePageState extends State<LLGHomePage> {
               SingleChildScrollView(
                 child: ListBody(
                   children: [
-                    ...allCategories
+                    ...categories
                         .map((item) => ListTile(
                               selected: item == selectedCategory,
                               leading: Icon(item.icon),
@@ -392,7 +389,7 @@ class LLGHomePageState extends State<LLGHomePage> {
                                 Navigator.pop(context);
                               },
                             ))
-                        .toList()
+                        .toList(),
                   ],
                 ),
               ),
@@ -402,9 +399,7 @@ class LLGHomePageState extends State<LLGHomePage> {
         //</editor-fold>
 
         body: FutureBuilder<Widget>(
-          future: kDebugMode
-              ? _buildEventPage()
-              : Future.value(selectedCategory.widget),
+          future: Future.value(selectedCategory.build()),
           builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
             if (snapshot.hasData) {
               return snapshot.data!;

@@ -3,12 +3,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
+import 'package:llgplan/category/category.dart';
 
 main() {
   EventList().fetch();
 }
 
-class EventList {
+class EventList extends PlanCategory {
+  EventList() : super('Termine', Icons.event);
+
   getCookies(String url) async {
     HttpClient httpClient = new HttpClient();
     HttpClientRequest request = await httpClient.getUrl(Uri.parse(url));
@@ -65,10 +68,12 @@ class EventList {
     return ListView.builder(
       itemCount: events.length,
       itemBuilder: (context, index) {
+        var event = events[index];
         return ListTile(
-          title: Text(events[index].content),
-          subtitle: Text(events[index].grade.toString()),
-          trailing: Text(events[index].date.toString()),
+          title: Text(event.content),
+          subtitle: Text(event.grade.name),
+          trailing:
+              Text('${event.date.day}.${event.date.month}.${event.date.year}'),
         );
       },
     );
