@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:llgplan/networking/eventlist.dart';
 import 'package:llgplan/networking/kollegium.dart';
 import 'package:llgplan/student.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -57,7 +58,6 @@ class LLGHomePageState extends State<LLGHomePage> {
     (icon: Icons.home, name: 'Heutiger Plan', widget: Container()),
     (icon: Icons.calendar_today, name: 'Stundenplan', widget: Container()),
     (icon: Icons.event, name: 'Termine', widget: Container()),
-    (icon: Icons.person, name: 'Lehrer Info', widget: Container()),
     (icon: Icons.settings, name: 'Einstellungen', widget: Container()),
     (icon: Icons.info, name: 'About', widget: Container()),
   ];
@@ -80,12 +80,6 @@ class LLGHomePageState extends State<LLGHomePage> {
       _getSlpPw().then((value) => slpPw = value);
 
       allCategories[3] = (
-        icon: Icons.person,
-        name: 'Lehrer Info',
-        widget: Container(child: _buildTeacherPage())
-      );
-
-      allCategories[4] = (
         icon: Icons.settings,
         name: 'Einstellungen',
         widget: Container(child: _buildConfigPage())
@@ -125,17 +119,6 @@ class LLGHomePageState extends State<LLGHomePage> {
       studentList?.add(name);
       prefs.setStringList('students', studentList!);
     });
-  }
-
-  //<editor-fold desc="Build Stuff">
-  Widget _buildTeacherPage() {
-    return SingleChildScrollView(
-      child: ListBody(
-        children: [
-          ...KollegiumFetcher.teachers.map((teacher) => teacher.widget),
-        ],
-      ),
-    );
   }
 
   Widget _buildConfigPage() {
@@ -193,6 +176,12 @@ class LLGHomePageState extends State<LLGHomePage> {
         ],
       ),
     );
+  }
+
+  Future<Widget> _buildEventPage() async {
+    EventList eventList = EventList();
+
+    return eventList.build();
   }
 
   Widget _buildConfirmDeletePopup(BuildContext context, Student student) {
@@ -319,100 +308,110 @@ class LLGHomePageState extends State<LLGHomePage> {
     _context = context;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        title: Row(
-          children: [
-            Text(_title),
-            // padding to right
-            const Spacer(),
-            Text(selectedCategory.name, textScaleFactor: 0.8),
-            const SizedBox(width: 10),
-            Icon(
-              selectedCategory.icon,
-              size: 20,
-            ),
-          ],
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Row(
+            children: [
+              Text(_title),
+              // padding to right
+              const Spacer(),
+              Text(selectedCategory.name, textScaleFactor: 0.8),
+              const SizedBox(width: 10),
+              Icon(
+                selectedCategory.icon,
+                size: 20,
+              ),
+            ],
+          ),
         ),
-      ),
-      //<editor-fold defaultstate="collapsed" desc="drawer">
-      drawer: Drawer(
-        width: 330,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            SizedBox(
-              height: 100,
-              child: DrawerHeader(
-                margin: EdgeInsets.zero,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).highlightColor,
-                  shape: BoxShape.rectangle,
-                ),
-                child: DropdownButton(
-                  value: _currentStudent,
-                  iconSize: 30,
-                  hint: const Text('Wähle einen Schüler oder Klasse aus'),
-                  underline: Container(
-                    height: 0,
+        //<editor-fold defaultstate="collapsed" desc="drawer">
+        drawer: Drawer(
+          width: 330,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              SizedBox(
+                height: 100,
+                child: DrawerHeader(
+                  margin: EdgeInsets.zero,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).highlightColor,
+                    shape: BoxShape.rectangle,
                   ),
-                  items: [
-                    DropdownMenuItem(
-                      value: null,
-                      child: Row(
-                        children: [
-                          TextButton(
-                            onPressed: _addStudentPopup,
-                            child: const Text(
-                              'Neuer Schüler oder Klasse',
-                              textScaleFactor: 1.1,
-                            ),
-                          ),
-                        ],
-                      ),
+                  child: DropdownButton(
+                    value: _currentStudent,
+                    iconSize: 30,
+                    hint: const Text('Wähle einen Schüler oder Klasse aus'),
+                    underline: Container(
+                      height: 0,
                     ),
-                    ...listItems,
-                  ],
-                  onChanged: (value) {
-                    if (value == null) {
-                      return;
-                    }
-                    selectStudent(value);
-                  },
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Row(
+                          children: [
+                            TextButton(
+                              onPressed: _addStudentPopup,
+                              child: const Text(
+                                'Neuer Schüler oder Klasse',
+                                textScaleFactor: 1.1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ...listItems,
+                    ],
+                    onChanged: (value) {
+                      if (value == null) {
+                        return;
+                      }
+                      selectStudent(value);
+                    },
+                  ),
                 ),
               ),
-            ),
-            SingleChildScrollView(
-              child: ListBody(
-                children: [
-                  ...allCategories
-                      .map((item) => ListTile(
-                            selected: item == selectedCategory,
-                            leading: Icon(item.icon),
-                            title: Text(
-                              //get second value of struct
-                              item.name,
-                              textScaleFactor: 1.4,
-                            ),
-                            onTap: () {
-                              if (item.name == '') return;
-                              setState(() {
-                                selectedCategory = item;
-                              });
+              SingleChildScrollView(
+                child: ListBody(
+                  children: [
+                    ...allCategories
+                        .map((item) => ListTile(
+                              selected: item == selectedCategory,
+                              leading: Icon(item.icon),
+                              title: Text(
+                                //get second value of struct
+                                item.name,
+                                textScaleFactor: 1.4,
+                              ),
+                              onTap: () {
+                                if (item.name == '') return;
+                                setState(() {
+                                  selectedCategory = item;
+                                });
 
-                              Navigator.pop(context);
-                            },
-                          ))
-                      .toList()
-                ],
+                                Navigator.pop(context);
+                              },
+                            ))
+                        .toList()
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      //</editor-fold>
+        //</editor-fold>
 
-      body: kDebugMode ? _buildTeacherPage() : selectedCategory.widget,
-    );
+        body: FutureBuilder<Widget>(
+          future: kDebugMode
+              ? _buildEventPage()
+              : Future.value(selectedCategory.widget),
+          builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+            if (snapshot.hasData) {
+              return snapshot.data!;
+            } else {
+              return const Center(child: CircularProgressIndicator());
+            }
+          },
+        ));
   }
 }

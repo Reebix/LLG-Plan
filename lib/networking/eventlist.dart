@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
 
 main() {
@@ -27,7 +28,7 @@ class EventList {
     return reply;
   }
 
-  void fetch() async {
+  Future<List<Event>> fetch() async {
     //get cookies
     final cookies =
         await getCookies('https://termin.selbstlernportal.de/?ug=lev-llg');
@@ -55,6 +56,22 @@ class EventList {
     });
 
     lastUpdate = DateTime.now();
+
+    return events;
+  }
+
+  Future<Widget> build() async {
+    await fetch();
+    return ListView.builder(
+      itemCount: events.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(events[index].content),
+          subtitle: Text(events[index].grade.toString()),
+          trailing: Text(events[index].date.toString()),
+        );
+      },
+    );
   }
 
   DateTime lastUpdate = DateTime.now();
