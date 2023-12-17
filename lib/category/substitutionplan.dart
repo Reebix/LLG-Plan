@@ -99,7 +99,6 @@ class SubstitutionPlan extends PlanCategory {
     for (var i = 0; i < days.length; i++) {
       var element = dayList[i];
 
-      /*
       element.querySelectorAll('tr').forEach((element) {
         // print(element.innerHtml);
         if (element.firstChild?.text == 'Klasse' ||
@@ -130,8 +129,6 @@ class SubstitutionPlan extends PlanCategory {
         days[i].substitutions.add(Substitution(class_, lessons, newTeacher,
             newSubject, oldSubject, comment, type, room));
       });
-      
-       */
     }
     lastUpdate = DateTime.now();
     return days;
@@ -156,8 +153,6 @@ class SubstitutionPlan extends PlanCategory {
   Future<Widget> build() async {
     await fetch();
 
-    print(days);
-
     return ListView.builder(
       itemCount: days.length,
       itemBuilder: (context, index) {
@@ -167,7 +162,7 @@ class SubstitutionPlan extends PlanCategory {
           ),
           children: days[index].substitutions.map((e) {
             return ListTile(
-              title: Text(e.class_),
+              title: Text(e.class_ + ' ' + e.oldSubject),
               subtitle: Text(e.lessons.join(', ')),
               trailing: Text(e.newSubject),
             );

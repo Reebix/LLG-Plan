@@ -1,12 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:llgplan/category/category.dart';
-import 'package:llgplan/category/eventlist.dart';
-import 'package:llgplan/category/kollegium.dart';
-import 'package:llgplan/category/substitutionplan.dart';
-import 'package:llgplan/student.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'category/category.dart';
+import 'category/eventlist.dart';
+import 'category/homepage.dart';
+import 'category/kollegium.dart';
+import 'category/substitutionplan.dart';
+import 'category/timetable.dart';
+import 'student.dart';
 
 void main() {
   runApp(const LLGApp());
@@ -67,6 +70,8 @@ class LLGHomePageState extends State<LLGHomePage> {
    */
 
   List<PlanCategory> categories = [
+    HomePage(),
+    TimeTable(),
     SubstitutionPlan(),
     EventList(),
   ];
@@ -122,63 +127,6 @@ class LLGHomePageState extends State<LLGHomePage> {
       studentList?.add(name);
       prefs.setStringList('students', studentList!);
     });
-  }
-
-  Widget _buildConfigPage() {
-    final TextEditingController dsbPwController =
-        TextEditingController(text: dsbPw);
-    final TextEditingController slpPwController =
-        TextEditingController(text: slpPw);
-
-    return SingleChildScrollView(
-      child: ListBody(
-        children: [
-          SizedBox(
-            height: 50,
-          ),
-          Row(
-            children: [
-              SizedBox(
-                width: 50,
-              ),
-              Text(
-                'DSB Login Passwort:',
-                textScaleFactor: 1.3,
-              ),
-              SizedBox(width: 10),
-              SizedBox(
-                width: 100,
-                child: TextField(
-                  onSubmitted: _dsbPwSubmit,
-                  controller: dsbPwController,
-                  decoration: const InputDecoration(hintText: 'Passwort'),
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              SizedBox(
-                width: 50,
-              ),
-              Text(
-                'SLP Login Passwort:',
-                textScaleFactor: 1.3,
-              ),
-              SizedBox(width: 10),
-              SizedBox(
-                width: 100,
-                child: TextField(
-                  onSubmitted: _slpPwSubmit,
-                  controller: slpPwController,
-                  decoration: const InputDecoration(hintText: 'Passwort'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildConfirmDeletePopup(BuildContext context, Student student) {
@@ -404,7 +352,18 @@ class LLGHomePageState extends State<LLGHomePage> {
             if (snapshot.hasData) {
               return snapshot.data!;
             } else {
-              return const Center(child: CircularProgressIndicator());
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Loading, please wait...'),
+                    Text('When not loading, check your internet connection'),
+                    Text('or something is broken.'),
+                    const SizedBox(height: 20),
+                    CircularProgressIndicator(),
+                  ],
+                ),
+              );
             }
           },
         ));
