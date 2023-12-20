@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:llgplan/category/category.dart';
 import 'package:uuid/uuid.dart';
 
@@ -87,7 +88,7 @@ class SubstitutionPlan extends PlanCategory {
     final substitutionPlanResponse =
         await http.get(Uri.parse(substitutionPlanUrl));
 
-    final substitutionPlanDocument = substitutionPlanResponse.body;
+    var substitutionPlanDocument = substitutionPlanResponse.body;
     final parsed = parse(substitutionPlanDocument);
 
     parsed.querySelectorAll('div.mon_title').forEach((element) {
@@ -153,22 +154,46 @@ class SubstitutionPlan extends PlanCategory {
   Future<Widget> build() async {
     await fetch();
 
-    return ListView.builder(
-      itemCount: days.length,
-      itemBuilder: (context, index) {
-        return ExpansionTile(
-          title: Text(
-            days[index].date.toString().split(' ')[0],
+    //TODO: remove after testing
+    days[0].substitutions.add(Substitution('5a', [1], 'Herr Müller', 'Mathe',
+        'Deutsch', 'Entfall', 'Entfall', ''));
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Stand: '),
+            Text(
+              DateFormat('dd.MM – kk:mm').format(lastUpdate),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+          ],
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: days.length,
+            itemBuilder: (context, index) {
+              return ExpansionTile(
+                title: Text(
+                  DateFormat('dd.MM').format(days[index].date),
+                ),
+                children: days[index].substitutions.map((e) {
+                  return ListTile(
+                    title: Text(e.class_ + ' ' + e.newTeacher),
+                    subtitle: Text(
+                        e.lessons.join(', ') + ' ' + e.comment + ' ' + e.type),
+                    trailing: Text(e.oldSubject + ' --> ' + e.newSubject),
+                  );
+                }).toList(),
+              );
+            },
           ),
-          children: days[index].substitutions.map((e) {
-            return ListTile(
-              title: Text(e.class_ + ' ' + e.oldSubject),
-              subtitle: Text(e.lessons.join(', ')),
-              trailing: Text(e.newSubject),
-            );
-          }).toList(),
-        );
-      },
+        ),
+      ],
     );
   }
 }

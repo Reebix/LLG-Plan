@@ -38,7 +38,9 @@ dependencies:
   uuid: ^4.1.0
   rename: ^2.1.1
   http: ^1.1.0
+  intl: ^0.17.0
   html: ^0.15.4
+  path_provider: ^2.1.1
   flutter_launcher_icons:
 
 flutter_launcher_icons:

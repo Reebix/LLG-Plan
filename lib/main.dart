@@ -58,17 +58,6 @@ class LLGHomePageState extends State<LLGHomePage> {
 
   late PlanCategory selectedCategory;
 
-  /*
-  var allCategories = [
-    (icon: Icons.home, name: 'Heutiger Plan', widget: Container()),
-    (icon: Icons.calendar_today, name: 'Stundenplan', widget: Container()),
-    (icon: Icons.event, name: 'Termine', widget: Container()),
-    (icon: Icons.settings, name: 'Einstellungen', widget: Container()),
-    (icon: Icons.info, name: 'About', widget: Container()),
-  ];
-
-   */
-
   List<PlanCategory> categories = [
     HomePage(),
     TimeTable(),
@@ -345,7 +334,6 @@ class LLGHomePageState extends State<LLGHomePage> {
           ),
         ),
         //</editor-fold>
-
         body: FutureBuilder<Widget>(
           future: Future.value(selectedCategory.build()),
           builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {

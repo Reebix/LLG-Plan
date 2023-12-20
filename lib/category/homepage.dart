@@ -7,7 +7,18 @@ class HomePage extends PlanCategory {
   @override
   Future<Widget> build() async {
     return Center(
-      child: Text('Startseite'),
-    );
+        child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text('Willkommen im '),
+        Text(
+          'Selbstlernportal',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+          ),
+        ),
+      ],
+    ));
   }
 }
