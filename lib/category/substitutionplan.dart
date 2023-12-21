@@ -16,6 +16,7 @@ main() {
 class SubstitutionPlan extends PlanCategory {
   String dsbUser = "153482";
   String dsbPw = "llg-schueler";
+  bool alreadyFetched = false;
 
   SubstitutionPlan() : super('Vertretungsplan', Icons.school);
 
@@ -152,7 +153,8 @@ class SubstitutionPlan extends PlanCategory {
 
   @override
   Future<Widget> build() async {
-    await fetch();
+    if (!alreadyFetched) await fetch();
+    alreadyFetched = true;
 
     //TODO: remove after testing
     days[0].substitutions.add(Substitution('5a', [1], 'Herr Müller', 'Mathe',

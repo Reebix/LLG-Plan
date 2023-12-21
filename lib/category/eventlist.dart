@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
+import 'package:intl/intl.dart';
 import 'package:llgplan/category/category.dart';
 
 main() {
@@ -63,19 +64,42 @@ class EventList extends PlanCategory {
     return events;
   }
 
+  bool alreadyFetched = false;
+
   Future<Widget> build() async {
-    await fetch();
-    return ListView.builder(
-      itemCount: events.length,
-      itemBuilder: (context, index) {
-        var event = events[index];
-        return ListTile(
-          title: Text(event.content),
-          subtitle: Text(event.grade.name),
-          trailing:
-              Text('${event.date.day}.${event.date.month}.${event.date.year}'),
-        );
-      },
+    if (!alreadyFetched) await fetch();
+    alreadyFetched = true;
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Stand: '),
+            Text(
+              DateFormat('dd.MM – kk:mm').format(lastUpdate),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+          ],
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: events.length,
+            itemBuilder: (context, index) {
+              var event = events[index];
+              return ListTile(
+                title: Text(event.content),
+                subtitle: Text(event.grade.name),
+                trailing: Text(
+                    '${event.date.day}.${event.date.month}.${event.date.year}'),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
