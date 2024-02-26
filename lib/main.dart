@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:llgplan/category/timetablecategory.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'category/category.dart';
@@ -8,7 +9,6 @@ import 'category/eventlist.dart';
 import 'category/homepage.dart';
 import 'category/kollegium.dart';
 import 'category/substitutionplan.dart';
-import 'category/timetable.dart';
 import 'student.dart';
 
 void main() {
@@ -58,12 +58,9 @@ class LLGHomePageState extends State<LLGHomePage> {
 
   late PlanCategory selectedCategory;
 
-  List<PlanCategory> categories = [
-    HomePage(),
-    TimeTable(),
-    SubstitutionPlan(),
-    EventList(),
-  ];
+  TimeTableCategory timeTable = TimeTableCategory();
+
+  List<PlanCategory> categories = [];
 
   String dsbUser = "153482";
   String dsbPw = "llg-schueler";
@@ -73,6 +70,14 @@ class LLGHomePageState extends State<LLGHomePage> {
   @override
   initState() {
     super.initState();
+
+    categories = [
+      HomePage(),
+      timeTable,
+      SubstitutionPlan(),
+      EventList(),
+    ];
+
     instance = this;
     KollegiumFetcher().fetch();
 
@@ -154,35 +159,11 @@ class LLGHomePageState extends State<LLGHomePage> {
 
   //</editor-fold>
 
-  Widget _buildAddStudentPopup(BuildContext context) {
-    final TextEditingController controller = TextEditingController();
-    return AlertDialog(
-      title: const Text('Neuer Schüler'),
-      content: TextField(
-        controller: controller,
-        decoration: const InputDecoration(hintText: 'Name'),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(_context).pop(),
-          child: const Text('Abbrechen'),
-        ),
-        TextButton(
-          onPressed: () async {
-            Navigator.of(_context).pop();
-            Navigator.of(_context).pop();
-            addStudent(controller.text);
-          },
-          child: const Text('Hinzufügen'),
-        ),
-      ],
-    );
-  }
-
   void _addStudentPopup() {
     showDialog(
         context: context,
-        builder: (BuildContext context) => _buildAddStudentPopup(context));
+        builder: (BuildContext context) =>
+            timeTable.buildAddStudentPopup(context));
   }
 
   void deleteStudent(Student student) async {

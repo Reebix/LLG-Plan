@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:llgplan/timetable.dart';
 
 class Student {
   final String name;
   late DropdownMenuItem<Student> dropdownMenuItem;
   final ValueChanged<Student?>? delete;
   bool isClass = false;
+  late TimeTable timeTable;
 
   Student(this.name, this.delete) {
     add();
