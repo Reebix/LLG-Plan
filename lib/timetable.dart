@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
+import 'package:llgplan/category/substitutionplan.dart';
 
 import 'main.dart';
 
@@ -16,15 +18,20 @@ class TableStudent {
 }
 
 main() {
-  var student = TableStudent("test", "test", "richter");
+  var student = TableStudent("test", "test", "schnabel");
   TimeTable(student);
   print("done");
 }
 
 class TimeTable {
+  static TimeTable? instance;
   TableStudent student;
 
-  TimeTable(this.student) {}
+  TimeTable(this.student) {
+    instance = this;
+  }
+
+  Day get currentDay => tables[1][4];
 
   var tables = [];
 
@@ -113,7 +120,8 @@ class TimeTable {
       for (var row in tableRows) {
         var tableCells = row.querySelectorAll('td');
         for (var cell in tableCells) {
-          days[currentDay].lessons.add(Lesson(cell.text));
+          //TODO: add identification on what lesson it is e.g. 4,5  7
+          days[currentDay].lessons.add(Lesson(cell.text, []));
           currentDay++;
           currentDay = currentDay % 5;
         }
@@ -207,33 +215,52 @@ class Day {
 class Lesson {
   String data;
   String exam = "";
+  String courseId = "";
   String course = "";
   String teacher = "";
   String room = "";
 
-  Lesson(this.data) {
+  Lesson(this.data, List<int> lessons_) {
     var split = data.split(" ");
     if (data == "") {
       return;
     }
     exam = split[0];
-    course = split[1].split("-")[0];
+    courseId = split[1];
+    course = courseId.split("-")[0];
     teacher = split[2];
     room = split[3];
   }
 
   static Lesson fromString(String str) {
-    return Lesson(str);
+    return Lesson(str, []);
   }
 
   @override
   String toString() {
-    return 'Lesson{exam: $exam, course: $course, teacher: $teacher, room: $room}';
+    return 'Lesson{exam: $exam, courseId: $courseId, teacher: $teacher, room: $room}';
   }
 
   bool showNote = false;
 
   Widget build({note = ""}) {
+    // TODO: rework
+    var currentDay = SubstitutionPlan.instance!.days[0];
+
+    var isReplaced = false;
+    var isCanceled = false;
+
+    currentDay.substitutions.forEach((element) {
+      if (element.oldSubject == courseId && element.class_ == "Q1") {
+        isReplaced = true;
+        if (element.type == "entfälllt") {
+          isCanceled = true;
+        }
+        teacher = element.newTeacher;
+        room = element.room;
+      }
+    });
+
     var style = TextStyle(
       fontSize: 12,
     );
@@ -250,7 +277,14 @@ class Lesson {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
     );
 
+    var color = isCanceled
+        ? Colors.red
+        : isReplaced
+            ? Colors.orange
+            : null;
+
     return Card(
+        color: color,
         child: SizedBox(
           width: 150,
           height: 25,

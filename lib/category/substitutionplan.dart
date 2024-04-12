@@ -18,7 +18,11 @@ class SubstitutionPlan extends PlanCategory {
   String dsbPw = "llg-schueler";
   bool alreadyFetched = false;
 
-  SubstitutionPlan() : super('Vertretungsplan', Icons.school);
+  static SubstitutionPlan? instance;
+
+  SubstitutionPlan() : super('Vertretungsplan', Icons.school) {
+    instance = this;
+  }
 
   Uint8List gunzipDecode(List<int> data) {
     final byteStream = BytesBuilder();
@@ -133,6 +137,7 @@ class SubstitutionPlan extends PlanCategory {
       });
     }
     lastUpdate = DateTime.now();
+
     return days;
   }
 

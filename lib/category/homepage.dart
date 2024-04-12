@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:llgplan/category/category.dart';
 import 'package:llgplan/main.dart';
+import 'package:llgplan/timetable.dart';
 
 class HomePage extends PlanCategory {
   HomePage() : super('Startseite', Icons.home);
@@ -11,9 +12,8 @@ class HomePage extends PlanCategory {
         child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _timetabelElement(Status.Canceled, note: "Aufgaben sind auf Moodle"),
-        _timetabelElement(Status.Normal),
-        _timetabelElement(Status.Replaced, note: 'Vertretung'),
+        Text("Heute"),
+        TimeTable.instance!.currentDay.build(),
       ],
     ));
   }
