@@ -21,21 +21,20 @@ class Student {
       value: this,
       child: Row(
         children: [
-          SizedBox(
-            width: 220,
-            child: Row(
-              children: [
-                Icon(
-                  isClass ? Icons.class_ : Icons.person,
-                  size: 40,
-                ),
-                SizedBox(
-                  width: 180,
-                  child: Text(name),
-                ),
-              ],
-            ),
+          Row(
+            children: [
+              Icon(
+                isClass ? Icons.class_ : Icons.person,
+                size: 40,
+              ),
+              SizedBox(
+                width: 180,
+                child: Text(name),
+              ),
+            ],
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
           ),
+
           IconButton(
             icon: const Icon(Icons.delete),
             color: Colors.red,

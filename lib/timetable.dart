@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
 
+import 'main.dart';
+
 class TableStudent {
   String name;
   String fullName;
@@ -122,62 +124,44 @@ class TimeTable {
       });
       tables.add(days);
     }
-
-    print(tables);
   }
 
   build() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            SizedBox(
-              width: 98,
-              child: tables[0][0].build(),
+    return Expanded(
+      child: ListView.builder(
+        itemCount: tables.length,
+        itemBuilder: (context, index) {
+          return SizedBox(
+            height: 400,
+            child: Row(
+              children: [
+                Center(
+                  child: SizedBox(
+                    width: 150,
+                    child: tables[index][0].build(),
+                  ),
+                ),
+                SizedBox(
+                  width: 150,
+                  child: tables[index][1].build(),
+                ),
+                SizedBox(
+                  width: 150,
+                  child: tables[index][2].build(),
+                ),
+                SizedBox(
+                  width: 150,
+                  child: tables[index][3].build(),
+                ),
+                SizedBox(
+                  width: 150,
+                  child: tables[index][4].build(),
+                ),
+              ],
             ),
-            SizedBox(
-              width: 98,
-              child: tables[0][1].build(),
-            ),
-            SizedBox(
-              width: 98,
-              child: tables[0][2].build(),
-            ),
-            SizedBox(
-              width: 98,
-              child: tables[0][3].build(),
-            ),
-            SizedBox(
-              width: 98,
-              child: tables[0][4].build(),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            SizedBox(
-              width: 98,
-              child: tables[1][0].build(),
-            ),
-            SizedBox(
-              width: 98,
-              child: tables[1][1].build(),
-            ),
-            SizedBox(
-              width: 98,
-              child: tables[1][2].build(),
-            ),
-            SizedBox(
-              width: 98,
-              child: tables[1][3].build(),
-            ),
-            SizedBox(
-              width: 98,
-              child: tables[1][4].build(),
-            ),
-          ],
-        ),
-      ],
+          );
+        },
+      ),
     );
   }
 }
@@ -204,36 +188,14 @@ class Day {
   }
 
   Widget build() {
-    // TODO: get current day and highlight it
-    return Card(
-      color: null,
-      child: SizedBox(
-        child: ListTile(
-          title: Text(
-            name,
-            style: TextStyle(fontSize: 10),
-            textAlign: TextAlign.center,
-          ),
-          subtitle: ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: lessons.length,
-            itemBuilder: (context, index) {
-              return Text(
-                lessons[index]
-                    .data
-                    .replaceFirst(RegExp(r'(?<=\s\S+\s)'), '\n')
-                    .replaceFirst(RegExp(r'^\S*\s'), '')
-                    .replaceFirst(RegExp(r'^(\S+\S+\S+)\s'), '')
-                    .replaceAll("\n", " "),
-                style: TextStyle(fontSize: 10),
-                textAlign: TextAlign.center,
-              );
-            },
-          ),
-        ),
-        height: 160,
-      ),
+    return Column(
+      children: [
+        Text(name),
+        Column(
+          children: lessons.map((e) => e.build()).toList(),
+        )
+      ],
+      mainAxisAlignment: MainAxisAlignment.start,
     );
   }
 
@@ -244,8 +206,21 @@ class Day {
 
 class Lesson {
   String data;
+  String exam = "";
+  String course = "";
+  String teacher = "";
+  String room = "";
 
-  Lesson(this.data);
+  Lesson(this.data) {
+    var split = data.split(" ");
+    if (data == "") {
+      return;
+    }
+    exam = split[0];
+    course = split[1].split("-")[0];
+    teacher = split[2];
+    room = split[3];
+  }
 
   static Lesson fromString(String str) {
     return Lesson(str);
@@ -253,6 +228,64 @@ class Lesson {
 
   @override
   String toString() {
-    return 'Lesson{data: $data}';
+    return 'Lesson{exam: $exam, course: $course, teacher: $teacher, room: $room}';
+  }
+
+  bool showNote = false;
+
+  Widget build({note = ""}) {
+    var style = TextStyle(
+      fontSize: 12,
+    );
+
+    var row = Row(
+      children: [
+        SizedBox(
+          child: Text(course, style: style),
+          width: 20,
+        ),
+        Text(room, style: style),
+        Text(teacher, style: style),
+      ],
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    );
+
+    return Card(
+        child: SizedBox(
+          width: 150,
+          height: 25,
+          child: note != ""
+              ? FilledButton(
+                  child: showNote
+                      ? Text(note)
+                      : Row(
+                          children: [
+                            ...row.children,
+                            Icon(note != "" ? Icons.textsms_outlined : null),
+                          ],
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        ),
+                  onPressed: () {
+                    if (note != "") {
+                      LLGHomePageState.instance!.setState(() {
+                        showNote = !showNote;
+                      });
+                    }
+                  },
+                  style: ButtonStyle(
+                    padding: MaterialStateProperty.all(EdgeInsets.all(0)),
+                    textStyle:
+                        MaterialStateProperty.all(TextStyle(fontSize: 10)),
+                    backgroundColor:
+                        MaterialStateProperty.all(Colors.transparent),
+                    shadowColor: MaterialStateProperty.all(Colors.transparent),
+                    overlayColor: MaterialStateProperty.all(Colors.transparent),
+                  ),
+                )
+              : row,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+        ));
   }
 }

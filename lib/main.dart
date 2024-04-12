@@ -255,7 +255,7 @@ class LLGHomePageState extends State<LLGHomePage> {
                   ),
                   child: DropdownButton(
                     value: _currentStudent,
-                    iconSize: 30,
+                    iconSize: 25,
                     hint: const Text('Wähle einen Schüler oder Klasse aus'),
                     underline: Container(
                       height: 0,
