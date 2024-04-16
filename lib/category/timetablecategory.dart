@@ -7,7 +7,7 @@ class TimeTableCategory extends PlanCategory {
 
   @override
   Future<Widget> build() async {
-    TimeTable timeTable = TimeTable(TableStudent("test", "test", "richter"));
+    TimeTable timeTable = TimeTable(TableStudent("test", "test", "10b"));
     await timeTable.fetch();
     return Scaffold(
       appBar: AppBar(

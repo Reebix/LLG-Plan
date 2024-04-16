@@ -135,41 +135,39 @@ class TimeTable {
   }
 
   build() {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: tables.length,
-        itemBuilder: (context, index) {
-          return SizedBox(
-            height: 400,
-            child: Row(
-              children: [
-                Center(
-                  child: SizedBox(
-                    width: 150,
-                    child: tables[index][0].build(),
-                  ),
-                ),
-                SizedBox(
+    return ListView.builder(
+      itemCount: tables.length,
+      itemBuilder: (context, index) {
+        return SizedBox(
+          height: 400,
+          child: Row(
+            children: [
+              Center(
+                child: SizedBox(
                   width: 150,
-                  child: tables[index][1].build(),
+                  child: tables[index][0].build(),
                 ),
-                SizedBox(
-                  width: 150,
-                  child: tables[index][2].build(),
-                ),
-                SizedBox(
-                  width: 150,
-                  child: tables[index][3].build(),
-                ),
-                SizedBox(
-                  width: 150,
-                  child: tables[index][4].build(),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+              SizedBox(
+                width: 150,
+                child: tables[index][1].build(),
+              ),
+              SizedBox(
+                width: 150,
+                child: tables[index][2].build(),
+              ),
+              SizedBox(
+                width: 150,
+                child: tables[index][3].build(),
+              ),
+              SizedBox(
+                width: 150,
+                child: tables[index][4].build(),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -221,15 +219,23 @@ class Lesson {
   String room = "";
 
   Lesson(this.data, List<int> lessons_) {
+    //TODO: optimize
     var split = data.split(" ");
     if (data == "") {
       return;
     }
-    exam = split[0];
-    courseId = split[1];
-    course = courseId.split("-")[0];
-    teacher = split[2];
-    room = split[3];
+
+    if (split.length < 4) {
+      course = split[0];
+      teacher = split[1];
+      room = split[2];
+    } else {
+      exam = split[0];
+      courseId = split[1];
+      course = courseId.split("-")[0];
+      teacher = split[2];
+      room = split[3];
+    }
   }
 
   static Lesson fromString(String str) {
