@@ -140,29 +140,35 @@ class TimeTable {
       itemBuilder: (context, index) {
         return SizedBox(
           height: 400,
-          child: Row(
+          width: MediaQuery.of(context).size.width,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
             children: [
-              Center(
-                child: SizedBox(
-                  width: 150,
-                  child: tables[index][0].build(),
-                ),
-              ),
-              SizedBox(
-                width: 150,
-                child: tables[index][1].build(),
-              ),
-              SizedBox(
-                width: 150,
-                child: tables[index][2].build(),
-              ),
-              SizedBox(
-                width: 150,
-                child: tables[index][3].build(),
-              ),
-              SizedBox(
-                width: 150,
-                child: tables[index][4].build(),
+              Row(
+                children: [
+                  Center(
+                    child: SizedBox(
+                      width: 150,
+                      child: tables[index][0].build(),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 150,
+                    child: tables[index][1].build(),
+                  ),
+                  SizedBox(
+                    width: 150,
+                    child: tables[index][2].build(),
+                  ),
+                  SizedBox(
+                    width: 150,
+                    child: tables[index][3].build(),
+                  ),
+                  SizedBox(
+                    width: 150,
+                    child: tables[index][4].build(),
+                  ),
+                ],
               ),
             ],
           ),
