@@ -118,7 +118,7 @@ class TimeTable {
       for (var row in tableRows) {
         var tableCells = row.querySelectorAll('td');
         for (var cell in tableCells) {
-          days[currentDay].lessons.add(Lesson(cell.text));
+          days[currentDay].lessons.add(Lesson(cell.text, currentDay));
           currentDay++;
           currentDay = currentDay % 5;
         }
@@ -229,8 +229,10 @@ class Lesson {
   String room = "";
 
   int index = 0;
+  int dayIndex = 0;
 
-  Lesson(this.data) {
+  Lesson(this.data, int dayIndex) {
+    this.dayIndex = dayIndex;
     //TODO: optimize
     var split = data.split(" ");
     if (data == "") {
@@ -251,7 +253,7 @@ class Lesson {
   }
 
   static Lesson fromString(String str) {
-    return Lesson(str);
+    return Lesson(str, 0);
   }
 
   @override
@@ -286,16 +288,17 @@ class Lesson {
     var isReplaced = false;
     var isCanceled = false;
 
-    currentDay.substitutions.forEach((element) {
-      if (element.oldSubject == courseId && element.class_ == "Q1") {
-        isReplaced = true;
-        if (element.type == "entfälllt") {
-          isCanceled = true;
+    if (dayIndex == currentWeekDayIndex)
+      currentDay.substitutions.forEach((element) {
+        if (element.oldSubject == courseId && element.class_ == "Q1") {
+          isReplaced = true;
+          if (element.type == "entfälllt") {
+            isCanceled = true;
+          }
+          teacher = element.newTeacher;
+          room = element.room;
         }
-        teacher = element.newTeacher;
-        room = element.room;
-      }
-    });
+      });
 
     var style = TextStyle(
       fontSize: 12,
