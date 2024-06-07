@@ -213,21 +213,25 @@ class SubstitutionDay {
 
   final DateTime date;
   final List<Substitution> substitutions;
+  final WeekType weekType;
 
-  SubstitutionDay(this.date, this.substitutions);
+  SubstitutionDay(this.date, this.substitutions, this.weekType);
 
   static createFromFormatted(String formatted) {
     final splitted = formatted.split(' ')[0].split('.');
     final date = DateTime.parse(
         '${splitted[2]}-${splitted[1].padLeft(2, '0')}-${splitted[0].padLeft(2, '0')}');
     final substitutions = List<Substitution>.empty(growable: true);
-    return SubstitutionDay(date, substitutions);
+    final weekType =
+        formatted.split(' ')[2] == 'Woche A' ? WeekType.A : WeekType.B;
+    return SubstitutionDay(date, substitutions, weekType);
   }
 
   static createFromJson(Map json) {
     final date = json['date'];
     final substitutions = json['substitutions'];
-    return SubstitutionDay(date, substitutions);
+    final weekType = json['weekType'];
+    return SubstitutionDay(date, substitutions, weekType);
   }
 
   @override
@@ -238,12 +242,14 @@ class SubstitutionDay {
   Map toJson() => {
         'date': date,
         'substitutions': substitutions,
+        'weekType': weekType,
       };
 
   static SubstitutionDay fromJson(Map json) {
     return SubstitutionDay(
       json['date'],
       json['substitutions'],
+      json['weekType'],
     );
   }
 }
@@ -297,3 +303,5 @@ class Substitution {
     );
   }
 }
+
+enum WeekType { A, B }

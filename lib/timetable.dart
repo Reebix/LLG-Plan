@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:llgplan/category/substitutionplan.dart';
 
 class TableStudent {
@@ -272,6 +273,11 @@ class Lesson {
     var days = SubstitutionPlan.instance!.days;
 
     var currentDay = days[0];
+
+    //get calender week
+    int dayOfYear = int.parse(DateFormat("D").format(currentWeekDay));
+    var week = ((dayOfYear - currentWeekDay.weekday + 10) / 7).floor();
+    WeekType weekType = week % 2 == 0 ? WeekType.A : WeekType.B;
 
     days.forEach((element) {
       if (element.date.isAtSameMomentAs(currentWeekDay)) {

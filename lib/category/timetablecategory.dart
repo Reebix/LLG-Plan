@@ -13,6 +13,7 @@ class TimeTableCategory extends PlanCategory {
     TimeTable timeTable = TimeTable(TableStudent("test", "test", "richter"));
     if (timeTables.containsKey(timeTable.student.name)) {
       timeTable = timeTables[timeTable.student.name]!;
+      TimeTable.instance = timeTable;
     } else {
       await timeTable.fetch();
       timeTables[timeTable.student.name] = timeTable;

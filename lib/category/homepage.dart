@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:llgplan/category/category.dart';
 import 'package:llgplan/main.dart';
 import 'package:llgplan/timetable.dart';
@@ -8,12 +9,25 @@ class HomePage extends PlanCategory {
 
   @override
   Future<Widget> build() async {
+    var currentWeekDay = DateTime.now().copyWith(
+        microsecond: 0, millisecond: 0, second: 0, minute: 0, hour: 0);
+
+    //get calender week
+    int dayOfYear = int.parse(DateFormat("D").format(currentWeekDay));
+    var week = ((dayOfYear - currentWeekDay.weekday + 10) / 7).floor();
+    int weekType = week % 2;
+
+    var currentDay =
+        TimeTable.instance!.tables[weekType][DateTime.now().weekday - 1];
+
+    print(currentDay);
+
     return Center(
         child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text("Heute"),
-        TimeTable.instance!.currentDay.build(),
+        currentDay.build(),
       ],
     ));
   }
@@ -50,11 +64,11 @@ class HomePage extends PlanCategory {
             }
           },
           style: ButtonStyle(
-            padding: MaterialStateProperty.all(EdgeInsets.all(0)),
-            textStyle: MaterialStateProperty.all(TextStyle(fontSize: 10)),
-            backgroundColor: MaterialStateProperty.all(Colors.transparent),
-            shadowColor: MaterialStateProperty.all(Colors.transparent),
-            overlayColor: MaterialStateProperty.all(Colors.transparent),
+            padding: WidgetStateProperty.all(EdgeInsets.all(0)),
+            textStyle: WidgetStateProperty.all(TextStyle(fontSize: 10)),
+            backgroundColor: WidgetStateProperty.all(Colors.transparent),
+            shadowColor: WidgetStateProperty.all(Colors.transparent),
+            overlayColor: WidgetStateProperty.all(Colors.transparent),
           ),
         ),
       ),
