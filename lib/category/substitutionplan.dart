@@ -16,7 +16,7 @@ main() {
 class SubstitutionPlan extends PlanCategory {
   String dsbUser = "153482";
   String dsbPw = "llg-schueler";
-  bool alreadyFetched = false;
+  SubstitutionPlan? alreadyFetched = null;
 
   static SubstitutionPlan? instance;
 
@@ -158,8 +158,11 @@ class SubstitutionPlan extends PlanCategory {
 
   @override
   Future<Widget> build() async {
-    if (!alreadyFetched) await fetch();
-    alreadyFetched = true;
+    if (alreadyFetched == null) {
+      await fetch();
+      alreadyFetched = this;
+    }
+    this.days = days;
 
     //TODO: remove after testing
     days[0].substitutions.add(Substitution('5a', [1], 'Herr Müller', 'Mathe',

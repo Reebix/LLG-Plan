@@ -1,14 +1,22 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:llgplan/category/category.dart';
 import 'package:llgplan/timetable.dart';
 
 class TimeTableCategory extends PlanCategory {
   TimeTableCategory() : super('Stundenplan', Icons.calendar_today);
+  HashMap<String, TimeTable> timeTables = HashMap();
 
   @override
   Future<Widget> build() async {
-    TimeTable timeTable = TimeTable(TableStudent("test", "test", "10b"));
-    await timeTable.fetch();
+    TimeTable timeTable = TimeTable(TableStudent("test", "test", "richter"));
+    if (timeTables.containsKey(timeTable.student.name)) {
+      timeTable = timeTables[timeTable.student.name]!;
+    } else {
+      await timeTable.fetch();
+      timeTables[timeTable.student.name] = timeTable;
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(name),

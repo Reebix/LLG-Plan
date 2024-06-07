@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'category/category.dart';
 import 'category/eventlist.dart';
 import 'category/homepage.dart';
-import 'category/kollegium.dart';
 import 'category/substitutionplan.dart';
 import 'student.dart';
 
@@ -79,11 +78,11 @@ class LLGHomePageState extends State<LLGHomePage> {
     ];
 
     instance = this;
-    KollegiumFetcher().fetch();
-
     selectedCategory = categories[0];
 
     loadStudents();
+
+    if (_currentStudent != null) {}
 
     setState(() {
       _getDsbPw().then((value) => dsbPw = value);
