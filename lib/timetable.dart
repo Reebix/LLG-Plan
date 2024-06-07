@@ -7,8 +7,6 @@ import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
 import 'package:llgplan/category/substitutionplan.dart';
 
-import 'main.dart';
-
 class TableStudent {
   String name;
   String fullName;
@@ -81,7 +79,7 @@ class TimeTable {
       body: loginParams,
     );
 
-    var loginPage2 = loginResponse.body;
+    // var loginPage2 = loginResponse.body;
 
     var loginPageCookies2 = loginResponse.headers[HttpHeaders.setCookieHeader];
     var cookie = loginPageCookies2!.split(";")[0];
@@ -120,8 +118,7 @@ class TimeTable {
       for (var row in tableRows) {
         var tableCells = row.querySelectorAll('td');
         for (var cell in tableCells) {
-          //TODO: add identification on what lesson it is e.g. 4,5  7
-          days[currentDay].lessons.add(Lesson(cell.text, []));
+          days[currentDay].lessons.add(Lesson(cell.text));
           currentDay++;
           currentDay = currentDay % 5;
         }
@@ -197,6 +194,13 @@ class Day {
         break;
       }
     }
+    for (var i = 0; i < lessons.length - 1; i++) {
+      lessons[i].index = i;
+    }
+  }
+
+  Lesson getLesson(int index) {
+    return lessons[index];
   }
 
   Widget build() {
@@ -224,7 +228,9 @@ class Lesson {
   String teacher = "";
   String room = "";
 
-  Lesson(this.data, List<int> lessons_) {
+  int index = 0;
+
+  Lesson(this.data) {
     //TODO: optimize
     var split = data.split(" ");
     if (data == "") {
@@ -245,7 +251,7 @@ class Lesson {
   }
 
   static Lesson fromString(String str) {
-    return Lesson(str, []);
+    return Lesson(str);
   }
 
   @override
@@ -256,8 +262,26 @@ class Lesson {
   bool showNote = false;
 
   Widget build({note = ""}) {
-    // TODO: rework
-    var currentDay = SubstitutionPlan.instance!.days[0];
+    //TODO: rework to check all days
+    // gets the current weekday
+    var currentWeekDay = DateTime.now().copyWith(
+        microsecond: 0, millisecond: 0, second: 0, minute: 0, hour: 0);
+
+    var days = SubstitutionPlan.instance!.days;
+
+    var currentDay = days[0];
+
+    days.forEach((element) {
+      if (element.date.isAtSameMomentAs(currentWeekDay)) {
+        currentDay = element;
+      }
+    });
+
+    if (currentWeekDay.isAfter(currentDay.date)) {
+      currentDay = days[days.length - 1];
+    }
+
+    var currentWeekDayIndex = currentDay.date.weekday - 1;
 
     var isReplaced = false;
     var isCanceled = false;
@@ -289,6 +313,8 @@ class Lesson {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
     );
 
+    var isNull = courseId == "";
+
     var color = isCanceled
         ? Colors.red
         : isReplaced
@@ -297,6 +323,7 @@ class Lesson {
 
     return Card(
         color: color,
+        surfaceTintColor: isNull ? Color(0xFFFFFF) : null,
         child: SizedBox(
           width: 150,
           height: 25,
@@ -313,19 +340,22 @@ class Lesson {
                         ),
                   onPressed: () {
                     if (note != "") {
-                      LLGHomePageState.instance!.setState(() {
-                        showNote = !showNote;
-                      });
+                      //TODO: Maybe this needs to be here
+                      /*
+                        LLGHomePageState.instance!.setState(() {
+                          showNote = !showNote;
+                        });
+
+                         */
                     }
                   },
                   style: ButtonStyle(
-                    padding: MaterialStateProperty.all(EdgeInsets.all(0)),
-                    textStyle:
-                        MaterialStateProperty.all(TextStyle(fontSize: 10)),
+                    padding: WidgetStateProperty.all(EdgeInsets.all(0)),
+                    textStyle: WidgetStateProperty.all(TextStyle(fontSize: 10)),
                     backgroundColor:
-                        MaterialStateProperty.all(Colors.transparent),
-                    shadowColor: MaterialStateProperty.all(Colors.transparent),
-                    overlayColor: MaterialStateProperty.all(Colors.transparent),
+                        WidgetStateProperty.all(Colors.transparent),
+                    shadowColor: WidgetStateProperty.all(Colors.transparent),
+                    overlayColor: WidgetStateProperty.all(Colors.transparent),
                   ),
                 )
               : row,
