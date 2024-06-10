@@ -177,6 +177,7 @@ class TimeTable {
 }
 
 class Day {
+  //TODO: add date
   String name;
   List<Lesson> lessons;
 
