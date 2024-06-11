@@ -30,7 +30,7 @@ class TimeTable {
     instance = this;
   }
 
-  Day get currentDay => tables[1][4];
+  // Day get currentDay => tables[1][4];
 
   var tables = [];
 
@@ -106,6 +106,13 @@ class TimeTable {
     final resultDocument = parse(result);
 
     var planTables = resultDocument.querySelectorAll('table.tt');
+    WeekType dayWeekType = WeekType.A;
+    var currentWeekDay = DateTime.now().copyWith(
+        microsecond: 0, millisecond: 0, second: 0, minute: 0, hour: 0);
+    var dayOfYear = int.parse(DateFormat("D").format(currentWeekDay));
+    var week = ((dayOfYear - currentWeekDay.weekday + 10) / 7).floor();
+    WeekType weekType = week % 2 == 0 ? WeekType.A : WeekType.B;
+
     for (var table in planTables) {
       List<Day> days = [
         Day("Montag", []),
@@ -129,6 +136,23 @@ class TimeTable {
         day.cut();
       });
       tables.add(days);
+
+      // on same week
+      for (var i = 0; i < days.length; i++) {
+        if (weekType == dayWeekType) {
+          var dayDiff = i - currentWeekDay.weekday;
+        }
+        // other week is later
+        else if (weekType == WeekType.A && dayWeekType == WeekType.B) {
+          // days[i].lessons.add(Lesson("", i));
+        }
+        // other week is earlier
+        else {
+          // days[i].lessons.add(Lesson("", i));
+        }
+      }
+
+      dayWeekType = WeekType.B;
     }
   }
 
@@ -180,6 +204,7 @@ class Day {
   //TODO: add date
   String name;
   List<Lesson> lessons;
+  DateTime date = DateTime.now();
 
   Day(this.name, this.lessons);
 
